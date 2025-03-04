@@ -46,7 +46,7 @@ async function copyToClipboard(text: string) {
 }
 
 // 初始化函数
-async function initialize() {
+export async function initializeTranslation() {
     try {    
         const url = new URL(window.location.href);
         const scrollY = url.searchParams.get('scrollY');
@@ -128,7 +128,7 @@ async function initialize() {
         initializeStyles();
         
         // 监听键盘事件
-        document.addEventListener('keydown', (e) => {
+        window.addEventListener('keydown', (e) => {
             console.log('检测到键盘事件:', e.key);
             
             // 处理T键事件
@@ -297,5 +297,5 @@ async function translatePartialText(selectedText: string, x: number, y: number, 
 
 // 初始化并添加事件监听
 console.log('开始初始化插件...');
-initialize();
+// initialize();
 console.log('初始化完成');

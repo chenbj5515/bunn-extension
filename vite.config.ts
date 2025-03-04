@@ -62,8 +62,9 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         input: {
           popup: path.resolve(__dirname, 'src/popup/index.html'),
-          subtitle: path.resolve(__dirname, 'src/content/subtitle/index.ts'),
-          translation: path.resolve(__dirname, 'src/content/translation/index.ts'),
+          content: path.resolve(__dirname, 'src/content/index.ts'),
+          // subtitle: path.resolve(__dirname, 'src/content/subtitle/index.ts'),
+          // translation: path.resolve(__dirname, 'src/content/translation/index.ts'),
           background: path.resolve(__dirname, 'src/background/index.ts'),
         },
         output: {

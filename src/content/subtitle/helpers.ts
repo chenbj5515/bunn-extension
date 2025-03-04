@@ -7,6 +7,8 @@ export let isYouTube = window.location.hostname.includes('youtube.com');
 export let isRequestInProgress = false; // 标记是否有请求正在进行中
 export let lastCopiedTime: number | null = null; // 记录上次ctrl+c指令的时间
 
+import { getApiKey } from '../../common/api';
+
 // 创建并添加通知元素样式
 export function addNotificationStyle() {
   if (!document.head) return; // 确保document.head存在
@@ -114,54 +116,48 @@ export function checkSubtitle() {
 
 // 从图像中提取字幕
 export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]) {
-  try {
-    const result = await chrome.storage.local.get(['openai_api_key']);
-    console.log('result:', result);
-    if (result.openai_api_key) {
-      // 修改图片数据的处理方式
-      const base64Image = arrayBufferToBase64(imageData);
+  const apiKey = await getApiKey();
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${result.openai_api_key}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Please extract any subtitles or captions from this image. Only return the text content, nothing else."
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image}`
-                  }
+  if (apiKey) {
+    // 有 API Key，直接请求 OpenAI 接口
+    const base64Image = arrayBufferToBase64(imageData);
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Please extract any subtitles or captions from this image. Only return the text content, nothing else."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
                 }
-              ]
-            }
-          ],
-          max_tokens: 1500
-        })
-      });
+              }
+            ]
+          }
+        ],
+        max_tokens: 1500
+      })
+    });
 
-      if (!response.ok) {
-        throw new Error('OpenAI API request failed');
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content.trim();
+    if (!response.ok) {
+      throw new Error('OpenAI API request failed');
     }
-  } catch (error) {
-    console.error('Error accessing OpenAI API directly:', error);
-  }
 
-  // 如果没有 API key 或直接请求失败，回退到通过 background.js 处理
+    const data = await response.json();
+    return data.choices[0].message.content.trim();
+  }
   const response = await chrome.runtime.sendMessage({
     type: "EXTRACT_SUBTITLES",
     data: {
@@ -180,9 +176,9 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
 // 将 ArrayBuffer 转换为 base64
 export function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array | number[]) {
   let binary = '';
-  const bytes = buffer instanceof Uint8Array ? buffer : 
-               buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : 
-               new Uint8Array(buffer);
+  const bytes = buffer instanceof Uint8Array ? buffer :
+    buffer instanceof ArrayBuffer ? new Uint8Array(buffer) :
+      new Uint8Array(buffer);
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);

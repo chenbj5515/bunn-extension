@@ -14,13 +14,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*", "*://*.netflix.com/*"],
-      "js": ["subtitle.js"],
-      "run_at": "document_idle"
-    },
-    {
       "matches": ["<all_urls>"],
-      "js": ["translation.js"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ]
