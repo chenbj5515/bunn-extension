@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Bunn Plugin",
+  "version": "1.0.0",
+  "description": "浏览器插件，用于字幕提取和文本翻译",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*", "*://*.netflix.com/*"],
+      "js": ["content/subtitle.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/translation.js"],
+      "run_at": "document_idle"
+    }
+  ]
+} 
