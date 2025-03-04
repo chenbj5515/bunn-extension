@@ -148,8 +148,6 @@ async function initialize() {
             // 处理C键事件
             if (e.key.toLowerCase() === 'c') {
                 const currentTime = Date.now();
-                console.log('currentTime:', currentTime);
-                console.log('lastCKeyPressTime:', lastCKeyPressTime);
                 if (currentTime - lastCKeyPressTime <= 500) { // 500ms内连续按两次
                     const selection = window.getSelection();
                     if (selection && selection.toString().trim()) {

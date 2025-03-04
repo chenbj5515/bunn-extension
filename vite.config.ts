@@ -19,7 +19,6 @@ function chromeExtensionPlugin() {
       
       // 复制manifest.json
       fs.copyFileSync('src/manifest.json', 'dist/manifest.json');
-      console.log('Manifest.json已复制到dist目录');
       
       // 处理popup.html
       const srcPopupPath = 'dist/src/popup/index.html';
@@ -35,7 +34,6 @@ function chromeExtensionPlugin() {
         
         // 写入到目标位置
         fs.writeFileSync(destPopupPath, htmlContent);
-        console.log('Popup HTML已移动到dist/popup.html并修正资源路径');
         
         // 删除原始文件夹
         fs.rmSync('dist/src', { recursive: true, force: true });
@@ -45,9 +43,9 @@ function chromeExtensionPlugin() {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
-  // 根据命令确定当前环境
-  const isProduction = command === 'build';
+export default defineConfig(({ command, mode }) => {
+  // 根据 mode 参数确定当前环境
+  const isProduction = mode === 'production';
   
   // 设置环境变量
   const apiBaseUrl = isProduction 
@@ -73,7 +71,6 @@ export default defineConfig(({ command }) => {
           entryFileNames: '[name].js',
           chunkFileNames: '[name]-[hash].js',
           assetFileNames: '[name]-[hash].[ext]',
-          manualChunks: undefined,
         },
       },
       emptyOutDir: true,

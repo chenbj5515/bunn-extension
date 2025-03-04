@@ -199,7 +199,6 @@ export function replaceWithTranslatedNode(translatedHTML: string, tempContainer:
         // 直接使用AI返回的结果，不添加额外的类名和样式
         // 替换临时容器
         tempContainer.replaceWith(translatedNode);
-        console.log('翻译完成，已插入翻译后的HTML');
     } else {
         console.error('无法解析翻译后的HTML');
         tempContainer.innerHTML = '翻译失败，无法解析翻译后的HTML';
@@ -250,7 +249,6 @@ export function addUnderlineWithPopup(range: Range, selectedText: string, popupI
 
 // 处理Popup显示的统一函数
 export function handlePopupDisplay(e: MouseEvent) {
-    console.log('处理Popup显示，事件类型:', e.type, '目标元素:', e.target);
     e.stopPropagation();
 
     const span = e.currentTarget as HTMLElement;
@@ -262,16 +260,12 @@ export function handlePopupDisplay(e: MouseEvent) {
         speakText(text);
     }
 
-    console.log('获取到Popup ID:', popupId);
-
     if (popupId) {
         const popup = document.getElementById(popupId);
-        console.log('找到Popup元素:', popup);
 
         if (popup) {
             // 获取当前显示的弹窗
             const currentVisiblePopup = (window as any).currentVisiblePopup;
-            console.log('currentVisiblePopup:', currentVisiblePopup);
             if (currentVisiblePopup) {
                 return;
             }

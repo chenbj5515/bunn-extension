@@ -27,7 +27,6 @@ export const askAI = async (
       return response.choices[0]?.message?.content || '';
     } else {
 
-      console.log("没有API Key，通过background.js调用")
       // 没有API Key，通过background.js调用
       const response = await chrome.runtime.sendMessage({
         type: 'CALL_AI_API',

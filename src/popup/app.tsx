@@ -23,7 +23,6 @@ export default function SettingsPage() {
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
 
-  console.log(user, "user================")
   // 请求 /api/user/info 接口，获取用户信息
   useEffect(() => {
     fetchApi("/api/user/info", {
@@ -46,7 +45,6 @@ export default function SettingsPage() {
   // 修改检查 chrome storage 的 useEffect
   useEffect(() => {
     chrome.storage.local.get(['openai_api_key'], (result) => {
-      console.log(result, "result================")
       setHasStoredApiKey(!!result.openai_api_key)
       setStoredApiKey(result.openai_api_key || "") // 保存 API key 的值
     })

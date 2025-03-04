@@ -7,7 +7,7 @@ import { isJapaneseText, addRubyForJapanese } from '@/common/utils';
  * @param originalHTML 原始HTML
  * @returns 翻译后的HTML
  */
-export async function getTranslatedHTML(originalHTML: string): Promise<string> {    
+export async function getTranslatedHTML(originalHTML: string): Promise<string> {
     const result = await askAI(
         `
         我会给你一个HTML标签及其内容，请将其中的文本内容翻译成中文，但保持HTML结构和属性不变。
@@ -17,18 +17,17 @@ export async function getTranslatedHTML(originalHTML: string): Promise<string> {
         `,
         'gpt-4o',
     );
-    
-    console.log("getTranslatedHTML result:", result)
+
     // 清理可能的前缀和后缀文本
     let translatedHTML = result.trim();
-    
+
     // 如果AI返回了带有代码块的回答，提取代码块内容
     if (translatedHTML.includes('```html')) {
         translatedHTML = translatedHTML.split('```html')[1].split('```')[0].trim();
     } else if (translatedHTML.includes('```')) {
         translatedHTML = translatedHTML.split('```')[1].split('```')[0].trim();
     }
-    
+
     return translatedHTML;
 }
 
@@ -40,7 +39,7 @@ export async function getTranslatedHTML(originalHTML: string): Promise<string> {
 export function calculateWidthFromCharCount(charCount: number): number {
     // 基准数据：361字符对应368px宽，164字符对应280px宽
     let width = 0;
-    
+
     if (charCount <= 100) {
         width = 250; // 字符很少时的最小宽度
     } else if (charCount <= 200) {
@@ -52,8 +51,7 @@ export function calculateWidthFromCharCount(charCount: number): number {
     } else {
         width = 400; // 字符很多时的最大宽度
     }
-    
-    console.log(`字符数: ${charCount}, 计算宽度: ${width}px`);
+
     return width;
 }
 
@@ -95,7 +93,7 @@ export function createOriginalDiv(selectedText: string): { originalDiv: HTMLDivE
     originalDiv.style.alignItems = 'center';
     originalDiv.style.fontSize = '14px';
     originalDiv.style.lineHeight = '1.9';
-    
+
     const originalText = document.createElement('span');
     originalText.textContent = selectedText;
     originalText.style.fontWeight = 'bold';
@@ -105,7 +103,7 @@ export function createOriginalDiv(selectedText: string): { originalDiv: HTMLDivE
     originalText.addEventListener('click', () => {
         speakText(selectedText);
     });
-    
+
     originalDiv.appendChild(originalText);
     return { originalDiv, originalText };
 }
@@ -143,7 +141,7 @@ export async function handleTranslationUpdate(
     translationDiv.textContent = '正在翻译...';
     const translation = await translationPromise;
     translationDiv.textContent = translation;
-    
+
     // 检查是否为日语文本
     if (isJapaneseText(selectedText)) {
         const textWithFurigana = await addRubyForJapanese(selectedText);
@@ -162,26 +160,36 @@ export async function handleExplanationStream(
 ): Promise<void> {
     explanationDiv.innerHTML = '正在分析...';
     let explanation = '';
-    
+    let chunkCount = 0;
+
     await askAIStream(
         `「${selectedText}」这个单词/短语的含义是什么？简洁明了地分析它。如果这个词的词源可考的话也要说明出来。`,
         'gpt-4o',
         (chunk) => {
             if (explanationDiv && chunk) {
+                if (explanationDiv.innerHTML === '正在分析...') {
+                    explanationDiv.innerHTML = '';
+                }
                 explanationDiv.innerHTML += chunk;
                 explanation += chunk;
-                
-                // 调整弹窗高度
-                if (popup) {
-                    popup.style.height = 'auto';
+                chunkCount++;
+                if (chunkCount % 10 === 0 || explanation.length % 50 === 0) {
+                    // 计算总字符数
+                    const totalChars = selectedText.length + translation.length + explanation.length;
+
+                    // 计算宽度
+                    const width = calculateWidthFromCharCount(totalChars);
+
+                    // 应用新宽度
+                    popup.style.width = `${width}px`;
+                    popup.style.maxWidth = `${width}px`;
                 }
             }
         },
         (fullText) => {
             // 流式响应完成后的处理
-            console.log('解释完成:', fullText);
         }
     );
-    
+
     return;
 }
