@@ -5,10 +5,14 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  // 检查是否是FormData类型
+  const isFormData = options.body instanceof FormData;
+  
   const response = await fetch(url, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      // 只有当不是FormData时才设置默认的Content-Type
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...options.headers,
     },
   });
