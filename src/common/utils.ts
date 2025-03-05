@@ -1,8 +1,21 @@
+// 添加以下辅助函数
+import { askAI } from './api';
+
 // 共享工具函数
+/**
+ * 向Chrome扩展发送消息
+ * @param type 消息类型
+ * @param payload 消息负载数据
+ * @returns Chrome消息发送结果
+ */
 export const sendMessage = (type: string, payload: any) => {
   return chrome.runtime.sendMessage({ type, payload });
 };
 
+/**
+ * 获取API配置信息
+ * @returns 包含apiKey和endpoint的配置对象
+ */
 export const getApiConfig = async () => {
   return new Promise((resolve) => {
     chrome.storage.sync.get(['apiKey', 'endpoint'], (result) => {
@@ -25,9 +38,11 @@ export function generateUniqueId(prefix: string = 'trans'): string {
   return `${prefix}-${timestamp}-${randomPart}`;
 }
 
-// 添加以下辅助函数
-import { askAI } from './api';
-
+/**
+ * 检测文本是否为中文
+ * @param text 要检测的文本
+ * @returns 是否为中文文本
+ */
 export function isChineseText(text: string): boolean {
   // 检测是否包含中文特有的标点符号
   const chinesePunctuation = /[\u3000-\u303F]|[\uFF00-\uFFEF]/;
@@ -71,13 +86,13 @@ export async function addRubyForJapanese(text: string): Promise<string> {
   try {
     // 使用OpenAI API获取汉字的平假名读音
     const prompt = `
-            请将以下日语文本中的汉字转换为带有平假名注音的形式。
-            请使用HTML的ruby标签格式，例如：<ruby>日<rt>に</rt></ruby><ruby>本<rt>ほん</rt></ruby><ruby>語<rt>ご</rt></ruby>
-            对于已经是平假名或片假名的部分，不需要添加ruby标签，保持原样即可。
-            只返回转换后的HTML，不要添加任何解释或其他内容。
+      请将以下日语文本中的汉字转换为带有平假名注音的形式。
+      请使用HTML的ruby标签格式，例如：<ruby>日<rt>に</rt></ruby><ruby>本<rt>ほん</rt></ruby><ruby>語<rt>ご</rt></ruby>
+      对于已经是平假名或片假名的部分，不需要添加ruby标签，保持原样即可。
+      只返回转换后的HTML，不要添加任何解释或其他内容。
 
-            文本: ${text}
-        `;
+      文本: ${text}
+    `;
 
     const result = await askAI(prompt);
     // 清理可能的前缀和后缀文本

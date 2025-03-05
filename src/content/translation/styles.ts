@@ -154,6 +154,19 @@ export function initializeStyles() {
             font-size: 14px;
             line-height: 1.9;
         }
+        
+        @keyframes highlight-flash {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(105, 46, 231, 0.5); }
+        }
+
+        .highlight-animation {
+            display: inline-block;
+            padding: 0 6px;
+            margin: 0 -6px;
+            border-radius: 4px;
+            animation: highlight-flash 1.5s ease-in-out 2;
+        }
     `;
     document.head.appendChild(style);
 }

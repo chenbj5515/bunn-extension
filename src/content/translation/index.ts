@@ -1,25 +1,80 @@
-import { askAI, askAIStream } from '@/common/api';
-import { initializeStyles } from "@/common/style";
-import { 
-    getTargetNode, 
-    findParagraphInsertPosition, 
-    createTempContainer, 
-    insertTempContainer, 
-    replaceWithTranslatedNode, 
-    addUnderlineWithPopup, 
-    isEntireParagraphSelected, 
-    showPopup 
-} from "@/common/dom";
-import { 
-    getTranslatedHTML, 
+import { askAI } from '@/common/api';
+import { initializeStyles } from "./styles";
+import {
+    getTranslatedHTML,
     createTranslationDiv,
     createExplanationDiv,
     createOriginalDiv,
     createPlayButton,
     handleTranslationUpdate,
     handleExplanationStream,
-    handlePlainTextTranslation
-} from './helpers';  
+    handlePlainTextTranslation,
+    getTargetNode,
+    findParagraphInsertPosition,
+    createTempContainer,
+    insertTempContainer,
+    replaceWithTranslatedNode,
+    addUnderlineWithPopup,
+    isEntireParagraphSelected,
+    showPopup
+} from './helpers';
+
+// 初始化函数
+export async function initializeTranslation() {
+    try {
+        initializeStyles();
+
+        // 如果用于点击我的应用的上文链接进入网页，那么用户是希望查看自己之前复制的文本在哪里
+        // 这里插件会根据URL参数，自动滚动到用户之前复制的文本的位置，并且高亮显示，帮助用户重温句子的上下文
+        await handleHighlight();
+
+        // 监听键盘事件
+        window.addEventListener('keydown', (e) => {
+            console.log('检测到键盘事件:', e.key);
+
+            // 用户选中文本后按下T键，会被识别为翻译事件。
+            // 翻译事件分为两种处理：处理整段翻译和处理部分文本翻译
+            if (e.key.toLowerCase() === 't') {
+                handleTranslation(e);
+            }
+
+            // 用户选中文本后连续按下C键，会被识别为复制事件。
+            // 复制事件会调用copyToClipboard函数，不同于普通的COPY，这里会把JSON复制到剪贴板
+            // JSON中不仅包括选中文本，并且还有URL参数和滚动位置信息，这些信息会用于恢复选中文本的位置
+            if (e.key.toLowerCase() === 'c') {
+                handleCopy(e);
+            }
+        }, true);
+
+    } catch (error) {
+        console.error('初始化插件时出错:', error);
+    }
+}
+
+function handleTranslation(e: KeyboardEvent) {
+    console.log('检测到按键T');
+    const selection = window.getSelection();
+    if (!selection || !selection.toString().trim()) {
+        console.log('没有选中文本');
+        return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    processSelection(selection);
+}
+
+function handleCopy(e: KeyboardEvent) {
+    const currentTime = Date.now();
+    if (currentTime - lastCKeyPressTime <= 500) { // 500ms内连续按两次
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim()) {
+            e.preventDefault();
+            e.stopPropagation();
+            copyToClipboard(selection.toString().trim());
+        }
+    }
+    lastCKeyPressTime = currentTime;
+}
 
 // 跟踪当前显示的悬浮窗
 let currentVisiblePopup: HTMLElement | null = null;
@@ -36,7 +91,7 @@ async function copyToClipboard(text: string) {
         text,
         url: url.toString()
     };
-    
+
     try {
         await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
         console.log('成功复制到剪贴板:', data);
@@ -45,171 +100,95 @@ async function copyToClipboard(text: string) {
     }
 }
 
-// 初始化函数
-export async function initializeTranslation() {
-    try {    
-        const url = new URL(window.location.href);
-        const scrollY = url.searchParams.get('scrollY');
-        const encodedText = url.searchParams.get('text');
-        if (encodedText) {
-            const decodedText = decodeURIComponent(encodedText);
-            console.log('从 URL 恢复的文本:', decodedText);
-            
-            // 添加CSS样式
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes highlight-flash {
-                    0%, 100% { background-color: transparent; }
-                    50% { background-color: rgba(105, 46, 231, 0.5); }
+// 从URL恢复文本并高亮显示
+async function highlightRestoredText(decodedText: string) {
+    // 等待滚动完成后查找并高亮文本
+    setTimeout(() => {
+        // 使用 TreeWalker 遍历 DOM 树查找文本节点
+        const treeWalker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function (node) {
+                    return node.textContent?.includes(decodedText)
+                        ? NodeFilter.FILTER_ACCEPT
+                        : NodeFilter.FILTER_REJECT;
                 }
-                .highlight-animation {
-                    display: inline-block;
-                    padding: 0 6px;
-                    margin: 0 -6px;
-                    border-radius: 4px;
-                    animation: highlight-flash 1.5s ease-in-out 2;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // 等待滚动完成后查找并高亮文本
-            setTimeout(() => {
-                // 使用 TreeWalker 遍历 DOM 树查找文本节点
-                const treeWalker = document.createTreeWalker(
-                    document.body,
-                    NodeFilter.SHOW_TEXT,
-                    {
-                        acceptNode: function(node) {
-                            return node.textContent?.includes(decodedText)
-                                ? NodeFilter.FILTER_ACCEPT
-                                : NodeFilter.FILTER_REJECT;
-                        }
-                    }
-                );
-
-                let currentNode;
-                while (currentNode = treeWalker.nextNode()) {
-                    const range = document.createRange();
-                    range.selectNode(currentNode);
-                    const rect = range.getBoundingClientRect();
-                    
-                    // 检查元素是否在可视区域内
-                    if (rect.top >= 0 &&
-                        rect.left >= 0 &&
-                        rect.bottom <= window.innerHeight &&
-                        rect.right <= window.innerWidth) {
-                        
-                        // 创建 span 包裹匹配文本
-                        const span = document.createElement('span');
-                        span.textContent = currentNode.textContent;
-                        currentNode.parentNode?.replaceChild(span, currentNode);
-                        
-                        // 添加动画类
-                        span.classList.add('highlight-animation');
-                        
-                        // 动画结束后移除类
-                        span.addEventListener('animationend', () => {
-                            // span.classList.remove('highlight-animation');
-                        });
-                        
-                        break; // 只高亮第一个匹配的可见元素
-                    }
-                }
-            }, 1000); // 给滚动动画留出足够时间
-        }
-        
-        if (scrollY) {
-            window.scrollTo({
-                top: parseInt(scrollY),
-                behavior: 'smooth'
-            });
-        }
-
-        initializeStyles();
-        
-        // 监听键盘事件
-        window.addEventListener('keydown', (e) => {
-            console.log('检测到键盘事件:', e.key);
-            
-            // 处理T键事件
-            if (e.key.toLowerCase() === 't') {
-                console.log('检测到按键T');
-                const selection = window.getSelection();
-                if (!selection || !selection.toString().trim()) {
-                    console.log('没有选中文本');
-                    return;
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('检测到按键T，处理选中文本:', selection.toString().trim());
-                processSelection(selection);
             }
-            
-            // 处理C键事件
-            if (e.key.toLowerCase() === 'c') {
-                const currentTime = Date.now();
-                if (currentTime - lastCKeyPressTime <= 500) { // 500ms内连续按两次
-                    const selection = window.getSelection();
-                    if (selection && selection.toString().trim()) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        copyToClipboard(selection.toString().trim());
-                    }
-                }
-                lastCKeyPressTime = currentTime;
+        );
+
+        let currentNode;
+        while (currentNode = treeWalker.nextNode()) {
+            const range = document.createRange();
+            range.selectNode(currentNode);
+            const rect = range.getBoundingClientRect();
+
+            // 检查元素是否在可视区域内
+            if (rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= window.innerHeight &&
+                rect.right <= window.innerWidth) {
+
+                // 创建 span 包裹匹配文本
+                const span = document.createElement('span');
+                span.textContent = currentNode.textContent;
+                currentNode.parentNode?.replaceChild(span, currentNode);
+
+                // 添加动画类
+                span.classList.add('highlight-animation');
+
+                // 动画结束后移除类
+                span.addEventListener('animationend', () => {
+                    span.classList.remove('highlight-animation');
+                });
+
+                break; // 只高亮第一个匹配的可见元素
             }
-        }, true);
-        
-        console.log('翻译插件初始化完成');
-    } catch (error) {
-        console.error('初始化插件时出错:', error);
+        }
+    }, 1000); // 给滚动动画留出足够时间
+}
+
+// 处理URL参数，包括滚动和文本高亮
+async function handleHighlight() {
+    const url = new URL(window.location.href);
+    const scrollY = url.searchParams.get('scrollY');
+    const encodedText = url.searchParams.get('text');
+
+    if (encodedText) {
+        const decodedText = decodeURIComponent(encodedText);
+        console.log('从 URL 恢复的文本:', decodedText);
+
+        // 调用高亮函数
+        await highlightRestoredText(decodedText);
+    }
+
+    if (scrollY) {
+        window.scrollTo({
+            top: parseInt(scrollY),
+            behavior: 'smooth'
+        });
     }
 }
 
 // 处理选中文本事件
 async function processSelection(selection: Selection) {
-    console.log('进入processSelection函数');
     if (!selection.rangeCount) {
         console.log('没有选中范围，退出');
         return;
     }
 
     const selectedText = selection.toString().trim();
-    if (!selectedText) {
-        console.log('没有选中文本，退出');
-        return;
-    }
-
-    // // 检查是否为中文或日文
-    // if (isChineseText(selectedText)) {
-    //     console.log('检测到中文文本，跳过翻译:', selectedText);
-    //     return;
-    // }
 
     const range = selection.getRangeAt(0);
 
-    console.log('startContainer:', range.startContainer.nodeType);
     const targetNode = getTargetNode(range, selectedText);
-
-    console.log('targetNode:', targetNode);
 
     if (!targetNode) {
         console.log('未找到选中文本所在元素');
         return;
     }
 
-    // 获取包含选中文本的段落节点
-    // const paragraphNode = targetNode?.closest('p') || targetNode;
-    const paragraphNode = targetNode;
-
-    const fullParagraphText = paragraphNode.textContent || '';
-    console.log('整个段落的文本内容:', fullParagraphText);
-
-    // 获取选中文本的位置
-    const rect = range.getBoundingClientRect();
-    // 在选中文本右侧偏下一点显示
-    const x = rect.right + 5; // 右侧偏移5px
-    const y = rect.top + rect.height / 2; // 垂直居中偏下
+    const fullParagraphText = targetNode.textContent || '';
 
     // 判断是否选中了整个段落
     const isFullParagraph = isEntireParagraphSelected(targetNode, selectedText);
@@ -221,7 +200,7 @@ async function processSelection(selection: Selection) {
     } else {
         console.log('处理部分文本翻译');
         // 处理部分文本的翻译
-        await translatePartialText(selectedText, x, y, range, fullParagraphText);
+        await translatePartialText(selectedText, range, fullParagraphText);
     }
 }
 
@@ -237,15 +216,15 @@ async function translateFullParagraph(targetNode: Element) {
     // 2. 创建临时容器
     const originalHTML = targetNode.outerHTML;
     const tempContainer = createTempContainer();
-    
+
     // 3. 插入临时容器
     insertTempContainer(tempContainer, insertPosition);
-    
+
     try {
         // 4. 发送原始HTML到AI并处理结果
         // 判断是否为HTML标签字符串
         const isHTMLString = /<[a-z][\s\S]*>/i.test(originalHTML);
-        
+
         if (isHTMLString) {
             // 原流程：处理HTML
             const translatedHTML = await getTranslatedHTML(originalHTML);
@@ -263,9 +242,13 @@ async function translateFullParagraph(targetNode: Element) {
 }
 
 // 处理部分文本的翻译
-async function translatePartialText(selectedText: string, x: number, y: number, range: Range, fullParagraphText: string) {
-    console.log('开始翻译部分文本:', selectedText, '位置:', x, y);
-    
+async function translatePartialText(selectedText: string, range: Range, fullParagraphText: string) {
+    // 获取选中文本的位置
+    const rect = range.getBoundingClientRect();
+    // 在选中文本右侧偏下一点显示
+    const x = rect.right + 5; // 右侧偏移5px
+    const y = rect.top + rect.height / 2; // 垂直居中偏下
+
     try {
         const popupId = `comfy-trans-popup-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -305,8 +288,3 @@ async function translatePartialText(selectedText: string, x: number, y: number, 
         alert('翻译失败，请查看控制台获取详细错误信息');
     }
 }
-
-// 初始化并添加事件监听
-console.log('开始初始化插件...');
-// initialize();
-console.log('初始化完成');
