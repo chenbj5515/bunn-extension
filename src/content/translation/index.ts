@@ -19,6 +19,22 @@ import {
     showPopup
 } from './helpers';
 
+// 业务流程：翻译
+// 1 用户选中不理解的文本
+// 2 用户按下t键，触发handleTranslation函数
+// 3 通过isEntireParagraphSelected识别选中的是段落还是一个单词/短语
+// 4-1 如果是段落，那么在段落下面展示一个样式和原来的段落一样的翻译后的段落
+// 4-2-1 如果是单词/短语，在选中单词/短语旁边用showPopup创建一个弹窗，并且会在里面展示翻译，音标和解析。
+// 4-2-2 addUnderlineWithPopup中会给翻译过的单词/短语增加样式和事件，并且绑定对应的悬浮窗。鼠标进入单词/短语所在的元素后，handlePopupDisplay中会展示之前生成的悬浮窗。
+
+// 业务流程：回顾句子的上下文
+// 1 用户选中不理解的文本
+// 2 用户双击c键，触发copyToClipboard。
+// 3 复制的文本和带有滚动位置信息的url的JSON会被复制到剪切板
+// 4 用户把剪切板内容复制到Bunn应用
+// 5 用户复习的时候，想要查看句子的上下文，点击查看按钮，打开步骤3中的url
+// 6 插件识别到URL中的特殊参数scrollY和text，在highlightRestoredText中进行处理，先滚动到scrollY的位置，然后高亮text对应的元素。
+
 // 初始化函数
 export async function initializeTranslation() {
     try {
