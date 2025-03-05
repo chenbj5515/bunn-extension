@@ -208,6 +208,7 @@ export async function captureYoutubeSubtitle() {
 
   try {
     if (ctx) {
+      const currentTime = video.currentTime - 2;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       canvas.toBlob(async (blob) => {
@@ -221,7 +222,6 @@ export async function captureYoutubeSubtitle() {
             const subtitleText = await extractSubtitlesFromImage(imageData);
             console.log('subtitleText:', subtitleText);
             if (subtitleText) {
-              const currentTime = video.currentTime - 2;
               const currentUrl = new URL(window.location.href);
               currentUrl.searchParams.set('t', Math.floor(currentTime).toString());
 
