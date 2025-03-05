@@ -85,16 +85,21 @@ export const askAIStream = async (
         payload: { prompt, model }
       });
       
-      // 监听流式响应
-      chrome.runtime.onMessage.addListener((message) => {
+      // 创建一个唯一的消息处理函数，以便后续可以移除
+      const messageHandler = (message: any) => {
         if (message.type === 'stream-chunk') {
           // 处理接收到的数据片段
           onChunk(message.text);
         } else if (message.type === 'stream-end') {
           // 处理接收到的完整文本
           onComplete(message.text);
+          // 流处理完成后，移除监听器
+          chrome.runtime.onMessage.removeListener(messageHandler);
         }
-      });
+      };
+      
+      // 监听流式响应
+      chrome.runtime.onMessage.addListener(messageHandler);
     }
   } catch (error) {
     console.error('流式调用AI API失败:', error);

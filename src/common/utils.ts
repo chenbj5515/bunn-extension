@@ -14,6 +14,17 @@ export const getApiConfig = async () => {
   });
 };
 
+/**
+ * 生成唯一标识符
+ * @param prefix 可选前缀
+ * @returns 唯一标识符字符串
+ */
+export function generateUniqueId(prefix: string = 'trans'): string {
+  const timestamp = Date.now();
+  const randomPart = Math.random().toString(36).substring(2, 10);
+  return `${prefix}-${timestamp}-${randomPart}`;
+}
+
 // 添加以下辅助函数
 import { askAI } from './api';
 

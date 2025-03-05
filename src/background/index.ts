@@ -51,6 +51,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         eventSource.onmessage = (event) => {
             try {
                 if (event.data === '[DONE]') {
+                    chrome.tabs.sendMessage(tabId, {
+                        type: 'stream-end',
+                    });
                     eventSource.close();
                     return;
                 }

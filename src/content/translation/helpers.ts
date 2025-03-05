@@ -1,6 +1,6 @@
 import { askAI, askAIStream } from "@/common/api";
 import { speakText } from '@/common/tts';
-import { isJapaneseText, addRubyForJapanese } from '@/common/utils';
+import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/utils';
 
 /**
  * 获取翻译后的HTML
@@ -192,4 +192,46 @@ export async function handleExplanationStream(
     );
 
     return;
+}
+
+/**
+ * 处理纯文本的翻译，使用流式API
+ * @param originalText 原始文本
+ * @param tempContainer 临时容器，用于显示翻译结果
+ */
+export async function handlePlainTextTranslation(
+    originalText: string,
+    tempContainer: HTMLElement
+): Promise<void> {
+    // 创建翻译元素
+    const translatedElement = document.createElement('div');
+    
+    // 添加唯一标识
+    const uniqueId = generateUniqueId();
+    translatedElement.id = uniqueId;
+    translatedElement.setAttribute('data-trans-id', uniqueId);
+    
+    tempContainer.replaceWith(translatedElement);
+
+    console.log(translatedElement, "创建了translatedElement===============");
+    
+    // 使用流式API获取翻译
+    await askAIStream(
+        `请将以下文本翻译成中文，只需要返回翻译结果：\n\n${originalText}`,
+        'gpt-4o',
+        (chunk) => {
+            // 确保我们使用的是当前存在于DOM中的元素
+            const currentElement = document.getElementById(uniqueId);
+            console.log(uniqueId, "uniqueId");
+            
+            // 处理每个数据块
+            if (currentElement && chunk) {
+                currentElement.innerHTML += chunk;
+            }
+        },
+        (fullText) => {
+            // 翻译完成后的处理
+            console.log('翻译完成:', fullText);
+        }
+    );
 }

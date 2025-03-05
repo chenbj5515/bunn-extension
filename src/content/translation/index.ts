@@ -1,4 +1,4 @@
-import { askAI } from '@/common/api';
+import { askAI, askAIStream } from '@/common/api';
 import { initializeStyles } from "@/common/style";
 import { 
     getTargetNode, 
@@ -10,7 +10,6 @@ import {
     isEntireParagraphSelected, 
     showPopup 
 } from "@/common/dom";
-import { isChineseText } from '@/common/utils';
 import { 
     getTranslatedHTML, 
     createTranslationDiv,
@@ -18,7 +17,8 @@ import {
     createOriginalDiv,
     createPlayButton,
     handleTranslationUpdate,
-    handleExplanationStream
+    handleExplanationStream,
+    handlePlainTextTranslation
 } from './helpers';  
 
 // 跟踪当前显示的悬浮窗
@@ -243,10 +243,19 @@ async function translateFullParagraph(targetNode: Element) {
     
     try {
         // 4. 发送原始HTML到AI并处理结果
-        const translatedHTML = await getTranslatedHTML(originalHTML);
+        // 判断是否为HTML标签字符串
+        const isHTMLString = /<[a-z][\s\S]*>/i.test(originalHTML);
         
-        // 5. 创建并插入翻译后的节点
-        replaceWithTranslatedNode(translatedHTML, tempContainer);
+        if (isHTMLString) {
+            // 原流程：处理HTML
+            const translatedHTML = await getTranslatedHTML(originalHTML);
+            // 5. 创建并插入翻译后的节点
+            replaceWithTranslatedNode(translatedHTML, tempContainer);
+        } else {
+            // 新流程：直接翻译文本
+            const originalText = targetNode.textContent || '';
+            await handlePlainTextTranslation(originalText, tempContainer);
+        }
     } catch (error) {
         console.error('翻译过程中出错:', error);
         tempContainer.innerHTML = '翻译失败，请查看控制台获取详细错误信息';
