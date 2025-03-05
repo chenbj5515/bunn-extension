@@ -180,11 +180,11 @@ async function processSelection(selection: Selection) {
         return;
     }
 
-    // 检查是否为中文或日文
-    if (isChineseText(selectedText)) {
-        console.log('检测到中文文本，跳过翻译:', selectedText);
-        return;
-    }
+    // // 检查是否为中文或日文
+    // if (isChineseText(selectedText)) {
+    //     console.log('检测到中文文本，跳过翻译:', selectedText);
+    //     return;
+    // }
 
     const range = selection.getRangeAt(0);
 
@@ -199,7 +199,9 @@ async function processSelection(selection: Selection) {
     }
 
     // 获取包含选中文本的段落节点
-    const paragraphNode = targetNode.closest('p') || targetNode;
+    // const paragraphNode = targetNode?.closest('p') || targetNode;
+    const paragraphNode = targetNode;
+
     const fullParagraphText = paragraphNode.textContent || '';
     console.log('整个段落的文本内容:', fullParagraphText);
 

@@ -124,6 +124,27 @@ export function initializeSubtitleFeatures() {
     setInterval(checkSubtitle, 500);
   }
 
+  // 移除YouTube评论区的翻译按钮
+  try {
+    // 立即执行一次移除操作
+    document.querySelectorAll('.translate-button.style-scope.ytd-comment-view-model').forEach(el => el.remove());
+    
+    // 使用MutationObserver持续监听DOM变化，移除新出现的翻译按钮
+    const observer = new MutationObserver((mutations) => {
+      document.querySelectorAll('.translate-button.style-scope.ytd-comment-view-model').forEach(el => el.remove());
+    });
+    
+    // 开始观察文档变化
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true 
+    });
+    
+    console.log('已设置移除YouTube评论区翻译按钮的监听器');
+  } catch (error) {
+    console.error('移除YouTube评论区翻译按钮时出错:', error);
+  }
+
   // 监听键盘事件
   window.addEventListener('keydown', handleKeyDown, true);
 }

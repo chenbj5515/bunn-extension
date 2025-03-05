@@ -6,13 +6,13 @@ import { speakText } from "./tts";
 export function getTargetNode(range: Range, selectedText: string): Element | null {
     let targetNode: Node | null = range.startContainer;
 
-    if (targetNode.nodeType === Node.TEXT_NODE) {
-        targetNode = targetNode.parentElement;
-    }
+    // if (targetNode.nodeType === Node.TEXT_NODE) {
+    //     targetNode = targetNode.parentElement;
+    // }
 
     // 如果选中文本长度大于当前节点文本长度,继续往上找父元素
     while (targetNode && selectedText.length > (targetNode.textContent?.length || 0)) {
-        const parentElement = targetNode.parentElement;
+        const parentElement = targetNode.parentElement as Element;
         if (!parentElement) break;
         targetNode = parentElement;
     }
@@ -334,6 +334,8 @@ export function isEntireParagraphSelected(targetNode: Element, selectedText: str
     console.log('判断是否选中了整个段落', targetNode, selectedText);
     // 如果选中的文本与节点的文本内容相同，则认为选中了整个段落
     const nodeText = targetNode.textContent?.trim() || '';
+
+    console.log('nodeText:', nodeText);
     return nodeText === selectedText;
 }
 
