@@ -158,6 +158,7 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
     const data = await response.json();
     return data.choices[0].message.content.trim();
   }
+
   const response = await chrome.runtime.sendMessage({
     type: "EXTRACT_SUBTITLES",
     data: {

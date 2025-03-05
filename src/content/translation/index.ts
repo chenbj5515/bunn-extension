@@ -16,7 +16,8 @@ import {
     replaceWithTranslatedNode,
     addUnderlineWithPopup,
     isEntireParagraphSelected,
-    showPopup
+    showPopup,
+    removeYoutubeTranslateButton
 } from './helpers';
 
 // 业务流程：翻译
@@ -43,6 +44,9 @@ export async function initializeTranslation() {
         // 如果用于点击我的应用的上文链接进入网页，那么用户是希望查看自己之前复制的文本在哪里
         // 这里插件会根据URL参数，自动滚动到用户之前复制的文本的位置，并且高亮显示，帮助用户重温句子的上下文
         await handleHighlight();
+
+        // 移除youtube评论区多余的翻译成中文的按钮，避免干扰翻译评论
+        removeYoutubeTranslateButton()
 
         // 监听键盘事件
         window.addEventListener('keydown', (e) => {

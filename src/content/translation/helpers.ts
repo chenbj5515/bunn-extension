@@ -701,3 +701,25 @@ export function insertTempContainer(tempContainer: HTMLDivElement, insertPositio
 }
 
 
+export function removeYoutubeTranslateButton() {
+    // 移除YouTube评论区的翻译按钮
+    try {
+        // 移除youtube上多余的翻译成中文的按钮，避免
+        document.querySelectorAll('.translate-button.style-scope.ytd-comment-view-model').forEach(el => el.remove());
+
+        // 使用MutationObserver持续监听DOM变化，移除新出现的翻译按钮
+        const observer = new MutationObserver((mutations) => {
+            document.querySelectorAll('.translate-button.style-scope.ytd-comment-view-model').forEach(el => el.remove());
+        });
+
+        // 开始观察文档变化
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('已设置移除YouTube评论区翻译按钮的监听器');
+    } catch (error) {
+        console.error('移除YouTube评论区翻译按钮时出错:', error);
+    }
+}
