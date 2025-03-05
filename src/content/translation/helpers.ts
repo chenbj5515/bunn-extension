@@ -212,8 +212,6 @@ export async function handlePlainTextTranslation(
     translatedElement.setAttribute('data-trans-id', uniqueId);
     
     tempContainer.replaceWith(translatedElement);
-
-    console.log(translatedElement, "创建了translatedElement===============");
     
     // 使用流式API获取翻译
     await askAIStream(

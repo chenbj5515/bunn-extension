@@ -331,12 +331,11 @@ export function handlePopupDisplay(e: MouseEvent) {
 
 // 判断是否选中了整个段落
 export function isEntireParagraphSelected(targetNode: Element, selectedText: string): boolean {
-    console.log('判断是否选中了整个段落', targetNode, selectedText);
-    // 如果选中的文本与节点的文本内容相同，则认为选中了整个段落
+    // 获取节点的文本内容
     const nodeText = targetNode.textContent?.trim() || '';
-
-    console.log('nodeText:', nodeText);
-    return nodeText === selectedText;
+    
+    // 或者如果选中的文本长度大于等于段落文本长度的一半，也认为选中了整个段落
+    return (selectedText.length >= nodeText.length / 2);
 }
 
 // 创建弹窗
