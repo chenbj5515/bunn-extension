@@ -5,12 +5,22 @@
   "description": "浏览器插件，用于字幕提取和文本翻译",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16": "assets/brand.png",
+    "48": "assets/brand.png",
+    "128": "assets/brand.png"
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/brand.png",
+      "48": "assets/brand.png",
+      "128": "assets/brand.png"
+    }
   },
   "content_scripts": [
     {

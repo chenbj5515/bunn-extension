@@ -47,16 +47,16 @@ export function initializeSubtitleFeatures() {
  * 处理键盘事件
  */
 async function handleKeyDown(e: KeyboardEvent) {
-  // 处理复制快捷键 (Ctrl+C / Cmd+C)
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+  // 处理复制快捷键 (Ctrl+Shift+C / Cmd+Shift+C)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
     await handleCopySubtitle(e);
   }
   // 处理YouTube上的左右箭头键
   else if (isYouTube && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     handleYouTubeArrowKeys(e);
   }
-  // 处理调整视频时间快捷键 (Ctrl+R / Cmd+R)
-  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') {
+  // 处理调整视频时间快捷键 (Ctrl+Shift+R / Cmd+Shift+R)
+  else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
     handleAdjustVideoTime(e);
   }
 }

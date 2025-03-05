@@ -20,6 +20,19 @@ function chromeExtensionPlugin() {
       // 复制manifest.json
       fs.copyFileSync('src/manifest.json', 'dist/manifest.json');
       
+      // 确保assets目录存在
+      if (!fs.existsSync('dist/assets')) {
+        fs.mkdirSync('dist/assets', { recursive: true });
+      }
+      
+      // 复制assets目录中的文件
+      if (fs.existsSync('src/assets')) {
+        const files = fs.readdirSync('src/assets');
+        files.forEach(file => {
+          fs.copyFileSync(`src/assets/${file}`, `dist/assets/${file}`);
+        });
+      }
+      
       // 处理popup.html
       const srcPopupPath = 'dist/src/popup/index.html';
       const destPopupPath = 'dist/popup.html';
