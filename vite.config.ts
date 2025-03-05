@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
@@ -44,6 +44,9 @@ function chromeExtensionPlugin() {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
+  // 加载环境变量
+  const env = loadEnv(mode, process.cwd());
+  
   // 根据 mode 参数确定当前环境
   const isProduction = mode === 'production';
   
@@ -94,8 +97,8 @@ export default defineConfig(({ command, mode }) => {
     define: {
       // 将API基础URL暴露给客户端代码
       'import.meta.env.VITE_API_BASE_URL': JSON.stringify(apiBaseUrl),
-      'import.meta.env.VITE_PUBLIC_SUBSCRIPTION_KEY': JSON.stringify("c61f77c2d4de4872af6c0bb6f92e2dcb"),
-      'import.meta.env.VITE_PUBLIC_REGION': JSON.stringify("eastasia"),
+      'import.meta.env.VITE_PUBLIC_SUBSCRIPTION_KEY': JSON.stringify(env.VITE_PUBLIC_SUBSCRIPTION_KEY),
+      'import.meta.env.VITE_PUBLIC_REGION': JSON.stringify(env.VITE_PUBLIC_REGION),
     }
   };
 }); 
