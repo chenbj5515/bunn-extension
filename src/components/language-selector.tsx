@@ -33,20 +33,20 @@ export function LanguageSelector() {
     const handleLanguageSelect = (value: string) => {
         setSelectedLanguage(value)
         setIsMenuOpen(false)
+        setIsExpanded(false)
         // 选择后延迟关闭，让用户看到选择结果
-        setTimeout(() => setIsExpanded(false), 300)
     }
 
     // 处理点击展开/收起
     const handleToggle = () => {
         if (!isExpanded) {
             setIsExpanded(true)
+            setIsMenuOpen(true)
             // 展开后稍微延迟打开菜单
-            setTimeout(() => setIsMenuOpen(true), 100)
         } else {
             setIsMenuOpen(false)
+            setIsExpanded(false)
             // 先关闭菜单，再收起
-            setTimeout(() => setIsExpanded(false), 300)
         }
     }
 
