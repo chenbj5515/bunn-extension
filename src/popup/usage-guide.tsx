@@ -1,42 +1,57 @@
 import { BookOpen } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useTranslation } from "react-i18next"
+import { useState } from "react"
+import "../i18n" // 导入i18n配置
 
 export default function UsageGuide() {
+  const { t, i18n } = useTranslation();
+  const [language, setLanguage] = useState(i18n.language);
+  
+  // 切换语言的函数
+  const toggleLanguage = () => {
+    const newLang = language === 'zh' ? 'en' : 'zh';
+    i18n.changeLanguage(newLang);
+    setLanguage(newLang);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-6 w-6" />
-          <CardTitle className="text-lg">Usage Guide</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-6 w-6" />
+            <CardTitle className="text-lg">{t('usageGuide.title')}</CardTitle>
+          </div>
         </div>
-        <CardDescription>Use these keyboard shortcuts to capture subtitles on YouTube or Netflix.</CardDescription>
-        <CardDescription>For best results, paste the subtitles into <a href="https://japanese-memory-rsc.vercel.app/" target="_blank" className="underline underline-offset-4 hover:text-primary">Bunn</a>.</CardDescription>
+        <CardDescription>
+          {t('usageGuide.forBestResults')} <a href="https://japanese-memory-rsc.vercel.app/" target="_blank" className="underline underline-offset-4 hover:text-primary">Bunn</a>.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">cmd+shift+c</h3>
+          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.cmdShiftC.title')}</h3>
           <p className="text-muted-foreground">
-            For Netflix: Open subtitles and press cmd+shift+c to copy the current subtitle.
+            {t('usageGuide.shortcuts.cmdShiftC.netflix')}
           </p>
           <p className="text-muted-foreground">
-            For YouTube: Find a video with built-in Japanese subtitles and press cmd+shift+c to copy the current
-            screen&apos;s subtitles.
-          </p>
-        </div>
-        <div>
-          <h3 className="text-[14px] font-semibold mb-2">cmd+shift+r</h3>
-          <p className="text-muted-foreground">Replay the video segment corresponding to the last copied subtitle.</p>
-        </div>
-        <div>
-          <h3 className="text-[14px] font-semibold mb-2">t</h3>
-          <p className="text-muted-foreground">
-            Select any text and press t to translate the selected text.
+            {t('usageGuide.shortcuts.cmdShiftC.youtube')}
           </p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">c+c</h3>
+          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.cmdShiftR.title')}</h3>
+          <p className="text-muted-foreground">{t('usageGuide.shortcuts.cmdShiftR.description')}</p>
+        </div>
+        <div>
+          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.t.title')}</h3>
           <p className="text-muted-foreground">
-            Select any text and press c twice to copy the text along with the URL (including scroll position) in JSON format to your clipboard.
+            {t('usageGuide.shortcuts.t.description')}
+          </p>
+        </div>
+        <div>
+          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.cc.title')}</h3>
+          <p className="text-muted-foreground">
+            {t('usageGuide.shortcuts.cc.description')}
           </p>
         </div>
       </CardContent>

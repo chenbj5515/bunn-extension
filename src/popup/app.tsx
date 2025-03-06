@@ -7,6 +7,9 @@ import UsageGuide from "./usage-guide"
 import { Key, UserCircle } from "lucide-react"
 import SubscriptionPrompt from "./subscription-prompt"
 import { fetchApi } from "@/utils/api"
+import { useTranslation } from "react-i18next"
+import "../i18n" // 导入i18n配置
+import { LanguageSelector } from "@/components/language-selector"
 
 // 定义用户类型
 interface User {
@@ -22,6 +25,15 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
+  const { t, i18n } = useTranslation();
+  const [language, setLanguage] = useState(i18n.language);
+
+  // 切换语言的函数
+  const toggleLanguage = () => {
+    const newLang = language === 'zh' ? 'en' : 'zh';
+    i18n.changeLanguage(newLang);
+    setLanguage(newLang);
+  };
 
   // 请求 /api/user/info 接口，获取用户信息
   useEffect(() => {
@@ -55,14 +67,15 @@ export default function SettingsPage() {
   //   window.open("https://your-subscription-guide-url.com", "_blank")
   // }
 
-  // TODO: 订阅引导页
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {loading && <p>加载中...</p>}
+    <div className="container mx-auto px-4 py-4 max-w-4xl">
+      {/* 添加语言切换按钮 */}
+      <div className="flex justify-end">
+        <LanguageSelector />
+      </div>
 
       {/* 当能获取到用户信息时，在 Settings 上方显示头像和用户名 */}
-      {!loading && user && user.user_id && (
+      {user ? (
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <img
@@ -77,24 +90,24 @@ export default function SettingsPage() {
             size="sm"
             className="text-[12px] text-white bg-black"
             onClick={() => {
-              fetchApi("/auth/logout", {
+              fetchApi("/api/user/logout", {
                 credentials: "include"
               }).then(() => {
                 window.location.reload()
               })
             }}
           >
-            Sign Out
+            {t('loginPage.signOut')}
           </Button>
         </div>
-      )}
+      ) : null}
 
       {/* 没有获取到用户信息（未登录）时，展示原有的 Sign in 和 Use API Key 选项 */}
-      {!loading && !user && !hasStoredApiKey && (
+      {!user && !hasStoredApiKey && (
         <>
-          <h1 className="text-2xl font-bold mb-6">Missing OpenAI API Key</h1>
+          <h1 className="text-2xl font-bold mb-6">{t('loginPage.missingApiKey')}</h1>
           <div className="text-[16px] text-muted-foreground mb-5">
-            Choose one of the following options to use the extension:
+            {t('loginPage.chooseOption')}
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-8 relative">
@@ -102,10 +115,10 @@ export default function SettingsPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <UserCircle className="h-6 w-6" />
-                  <CardTitle className="text-xl">Sign in</CardTitle>
+                  <CardTitle className="text-xl">{t('loginPage.signIn.title')}</CardTitle>
                 </div>
                 <CardDescription>
-                  Sign in with GitHub or Google to access premium features without an API key
+                  {t('loginPage.signIn.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -115,22 +128,22 @@ export default function SettingsPage() {
 
             {/* 垂直 OR 分隔符 */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:block hidden">
-              <div className="bg-background px-4 py-2 rounded-full text-sm border">OR</div>
+              <div className="bg-background px-4 py-2 rounded-full text-sm border">{t('loginPage.or')}</div>
             </div>
 
             {/* 移动端水平 OR 分隔符 */}
             <div className="md:hidden flex items-center justify-center">
-              <div className="bg-background px-4 py-2 rounded-full text-sm border">OR</div>
+              <div className="bg-background px-4 py-2 rounded-full text-sm border">{t('loginPage.or')}</div>
             </div>
 
             <Card className="relative hover:border-primary transition-colors">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Key className="h-6 w-6" />
-                  <CardTitle className="text-lg">Use API Key</CardTitle>
+                  <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
                 </div>
                 <CardDescription>
-                  Provide your own OpenAI API key to use the extension without an account
+                  {t('loginPage.apiKey.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -142,7 +155,7 @@ export default function SettingsPage() {
       )}
 
       {/* 当能获取到用户信息时，根据 current_plan 字段展示对应的内容 */}
-      {!loading && user && user.user_id && (
+      {user ? (
         <>
           {user.current_plan !== null ? <UsageGuide /> : (
             <>
@@ -155,10 +168,10 @@ export default function SettingsPage() {
                     <CardHeader>
                       <div className="flex items-center gap-2">
                         <Key className="h-6 w-6" />
-                        <CardTitle className="text-lg">Use API Key</CardTitle>
+                        <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
                       </div>
                       <CardDescription>
-                        You have already set up your OpenAI API key
+                        {t('loginPage.apiKey.alreadySetup')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -167,7 +180,7 @@ export default function SettingsPage() {
                   </Card>
 
                   <div className="mt-8">
-                    <SubscriptionPrompt apiKeySetted/>
+                    <SubscriptionPrompt apiKeySetted />
                   </div>
                 </>
               ) : (
@@ -177,17 +190,17 @@ export default function SettingsPage() {
 
                   {/* 移动端水平 OR 分隔符 */}
                   <div className="md:hidden flex items-center justify-center">
-                    <div className="bg-background px-4 py-2 rounded-full text-sm border">OR</div>
+                    <div className="bg-background px-4 py-2 rounded-full text-sm border">{t('loginPage.or')}</div>
                   </div>
 
                   <Card className="relative hover:border-primary transition-colors">
                     <CardHeader>
                       <div className="flex items-center gap-2">
                         <Key className="h-6 w-6" />
-                        <CardTitle className="text-lg">Use API Key</CardTitle>
+                        <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
                       </div>
                       <CardDescription>
-                        Provide your own OpenAI API key to use the extension without an account
+                        {t('loginPage.apiKey.description')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -199,10 +212,10 @@ export default function SettingsPage() {
             </>
           )}
         </>
-      )}
+      ) : null}
 
       {/* 没有用户但有存储的 API key 时的视图 */}
-      {!loading && !user && hasStoredApiKey && (
+      {!user && hasStoredApiKey ? (
         <>
           <UsageGuide />
 
@@ -210,10 +223,10 @@ export default function SettingsPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Key className="h-6 w-6" />
-                <CardTitle className="text-lg">Use API Key</CardTitle>
+                <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
               </div>
               <CardDescription>
-                You have already set up your OpenAI API key
+                {t('loginPage.apiKey.alreadySetup')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -225,10 +238,10 @@ export default function SettingsPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <UserCircle className="h-6 w-6" />
-                <CardTitle className="text-xl">Sign in</CardTitle>
+                <CardTitle className="text-xl">{t('loginPage.signIn.title')}</CardTitle>
               </div>
               <CardDescription>
-                Sign in with GitHub or Google to access premium features without an API key
+                {t('loginPage.signIn.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -236,7 +249,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </>
-      )}
+      ) : null}
     </div>
   )
 }

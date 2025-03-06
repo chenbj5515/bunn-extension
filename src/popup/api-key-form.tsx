@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/icons"
+import { useTranslation } from "react-i18next"
+import "../i18n" // 导入i18n配置
 
 export default function ApiKeyForm({
   initialApiKey = "",
@@ -14,6 +16,7 @@ export default function ApiKeyForm({
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [apiKey, setApiKey] = useState(initialApiKey)
+  const { t } = useTranslation();
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -35,26 +38,26 @@ export default function ApiKeyForm({
         <div className="space-y-2">
           <Input
             type="password"
-            placeholder="Enter your OpenAI API Key"
+            placeholder={t('loginPage.apiKey.placeholder')}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             disabled={isLoading}
           />
           <p className="text-sm text-muted-foreground">
-            Visit the{" "}
+            {t('loginPage.apiKey.visitPage')}{" "}
             <a
               href="https://platform.openai.com/account/api-keys"
               target="_blank"
               className="underline underline-offset-4 hover:text-primary"
             >
-              official OpenAI settings page
+              {t('loginPage.apiKey.officialPage')}
             </a>{" "}
-            to obtain your key.
+            {t('loginPage.apiKey.toObtain')}
           </p>
         </div>
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-          Save Settings
+          {t('loginPage.apiKey.saveSettings')}
         </Button>
       </form>
     </div>

@@ -9,15 +9,20 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
     "ai": "^4.1.50",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.4.10",
+    "i18next": "^24.2.2",
+    "i18next-browser-languagedetector": "^8.0.4",
     "lucide-react": "^0.477.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.42.0",
     "openai": "^4.86.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^15.4.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
     "vite-plugin-static-copy": "^2.3.0"
