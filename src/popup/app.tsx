@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { fetchApi } from "@/utils/api"
 import { LanguageSelector } from "@/components/language-selector"
+import Loading from "@/components/loading"
 import ApiKeyForm from "./api-key-form"
 import AuthForm from "./auth-form"
 import UsageGuide from "./usage-guide"
@@ -57,6 +58,10 @@ export default function SettingsPage() {
   // const handleSubscribeGuide = () => {
   //   window.open("https://your-subscription-guide-url.com", "_blank")
   // }
+
+  if (loading) {
+    return <Loading />
+  }
 
   return (
     <div className="container mx-auto px-4 py-4 max-w-4xl">
