@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { Key, UserCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { fetchApi } from "@/utils/api"
+import { LanguageSelector } from "@/components/language-selector"
 import ApiKeyForm from "./api-key-form"
 import AuthForm from "./auth-form"
 import UsageGuide from "./usage-guide"
-import { Key, UserCircle } from "lucide-react"
 import SubscriptionPrompt from "./subscription-prompt"
-import { fetchApi } from "@/utils/api"
-import { useTranslation } from "react-i18next"
 import "../i18n" // 导入i18n配置
-import { LanguageSelector } from "@/components/language-selector"
 
 // 定义用户类型
 interface User {
@@ -25,16 +25,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
-  const { t, i18n } = useTranslation();
-  const [language, setLanguage] = useState(i18n.language);
-
-  // 切换语言的函数
-  const toggleLanguage = () => {
-    const newLang = language === 'zh' ? 'en' : 'zh';
-    i18n.changeLanguage(newLang);
-    setLanguage(newLang);
-  };
-
+  const { t } = useTranslation();
   // 请求 /api/user/info 接口，获取用户信息
   useEffect(() => {
     fetchApi("/api/user/info", {
@@ -88,7 +79,7 @@ export default function SettingsPage() {
           <Button
             variant="outline"
             size="sm"
-            className="text-[12px] text-white bg-black"
+            className="mr-[50px] text-[12px] text-white bg-black"
             onClick={() => {
               fetchApi("/api/user/logout", {
                 credentials: "include"
@@ -105,7 +96,7 @@ export default function SettingsPage() {
       {/* 没有获取到用户信息（未登录）时，展示原有的 Sign in 和 Use API Key 选项 */}
       {!user && !hasStoredApiKey && (
         <>
-          <h1 className="text-2xl font-bold mb-6">{t('loginPage.missingApiKey')}</h1>
+          <h1 className="text-2xl font-bold mt-[4px] mb-6">{t('loginPage.missingApiKey')}</h1>
           <div className="text-[16px] text-muted-foreground mb-5">
             {t('loginPage.chooseOption')}
           </div>
@@ -216,7 +207,7 @@ export default function SettingsPage() {
 
       {/* 没有用户但有存储的 API key 时的视图 */}
       {!user && hasStoredApiKey ? (
-        <>
+        <div>
           <UsageGuide />
 
           <Card className="mt-8">
@@ -248,7 +239,7 @@ export default function SettingsPage() {
               <AuthForm />
             </CardContent>
           </Card>
-        </>
+        </div>
       ) : null}
     </div>
   )

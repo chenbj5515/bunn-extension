@@ -45,10 +45,10 @@ export default {
   },
   subscription: {
     title: "升级到高级版",
-    description: "无需 API 密钥即可访问所有功能。此外，还可以无限制地访问我们的日语学习网站。",
+    description: "无需 API 密钥即可访问所有功能。此外，还可以无限制地使用Bunn。",
     subscribeNow: "立即订阅",
     learnMore: "了解更多关于",
-    website: "日语学习网站"
+    website: "Bunn"
   },
   auth: {
     signInWithGithub: "使用 GitHub 登录",

@@ -48,7 +48,7 @@ export default function ApiKeyForm({
             <a
               href="https://platform.openai.com/account/api-keys"
               target="_blank"
-              className="underline underline-offset-4 hover:text-primary"
+              className="underline underline-offset-4 text-primary hover:text-muted-foreground"
             >
               {t('loginPage.apiKey.officialPage')}
             </a>{" "}

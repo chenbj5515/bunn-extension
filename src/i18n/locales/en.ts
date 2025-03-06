@@ -45,10 +45,10 @@ export default {
   },
   subscription: {
     title: "Upgrade to Premium",
-    description: "Get access to all features without needing an API key. Plus, enjoy unlimited access to our companion Japanese learning website.",
+    description: "Get access to all features without needing an API key. Plus, enjoy unlimited access to Bunn.",
     subscribeNow: "Subscribe Now",
     learnMore: "Learn more about",
-    website: "Japanese learning website"
+    website: "Bunn"
   },
   auth: {
     signInWithGithub: "Sign in with GitHub",

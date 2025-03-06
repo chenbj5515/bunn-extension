@@ -17,7 +17,10 @@ export const askAI = async (
     
     if (apiKey) {
       // 有API Key，直接使用OpenAI SDK
-      const openai = new OpenAI({ apiKey });
+      const openai = new OpenAI({
+        apiKey,
+        dangerouslyAllowBrowser: true,
+      });
 
       const response = await openai.chat.completions.create({
         model,
@@ -58,7 +61,7 @@ export const askAIStream = async (
     
     if (apiKey) {
       // 有API Key，直接使用OpenAI SDK
-      const openai = new OpenAI({ apiKey });
+      const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
       const stream = await openai.chat.completions.create({
         model,
