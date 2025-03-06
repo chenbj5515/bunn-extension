@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Bunn",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "浏览器插件，用于字幕提取和文本翻译",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage"],
   "host_permissions": ["<all_urls>"],
   "icons": {
     "16": "assets/brand.png",

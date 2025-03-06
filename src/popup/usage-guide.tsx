@@ -14,7 +14,7 @@ export default function UsageGuide() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">cmd+shift+c:</h3>
+          <h3 className="text-[14px] font-semibold mb-2">cmd+shift+c</h3>
           <p className="text-muted-foreground">
             For Netflix: Open subtitles and press cmd+shift+c to copy the current subtitle.
           </p>
@@ -24,17 +24,17 @@ export default function UsageGuide() {
           </p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">cmd+shift+r:</h3>
+          <h3 className="text-[14px] font-semibold mb-2">cmd+shift+r</h3>
           <p className="text-muted-foreground">Replay the video segment corresponding to the last copied subtitle.</p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">t:</h3>
+          <h3 className="text-[14px] font-semibold mb-2">t</h3>
           <p className="text-muted-foreground">
             Select any text and press t to translate the selected text.
           </p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">c+c:</h3>
+          <h3 className="text-[14px] font-semibold mb-2">c+c</h3>
           <p className="text-muted-foreground">
             Select any text and press c twice to copy the text along with the URL (including scroll position) in JSON format to your clipboard.
           </p>
