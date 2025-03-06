@@ -295,7 +295,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
         originalDiv.appendChild(playButton);
 
         // 6. 发起翻译请求并处理结果
-        const translationPromise = askAI(`${fullParagraphText}这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
+        const translationPromise = askAI(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
         handleTranslationUpdate(translationDiv, originalText, selectedText, translationPromise);
 
         // 7. 获取解释并流式更新

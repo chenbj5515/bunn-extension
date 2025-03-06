@@ -65,7 +65,7 @@ export default defineConfig(({ command, mode }) => {
   
   // 设置环境变量
   const apiBaseUrl = isProduction 
-    ? 'https://japanese-memory-auth.chenbj55150220.workers.dev'
+    ? 'https://bunn-backend.vercel.app'
     : 'http://localhost:3000';
   
   return {
