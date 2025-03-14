@@ -10,6 +10,7 @@ import {
 } from "./ui/dropdown-menu";
 import { fetchApi } from "@/utils/api";
 import { User } from "@/popup/app";
+import { ChevronRight } from "lucide-react";
 
 interface UserMenuProps {
   user: User;
@@ -96,7 +97,10 @@ export function UserMenu({ user }: UserMenuProps) {
         {user.has_subscription && (
           <>
             <DropdownMenuItem onClick={handleManageSubscription} className="py-2">
-              <span className="text-sm">订阅管理</span>
+              <span className="text-sm flex justify-between items-center w-full">
+                <span>订阅管理</span>
+                <ChevronRight className="h-4 w-4" />
+              </span>
             </DropdownMenuItem>
           </>
         )}
