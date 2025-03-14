@@ -75,7 +75,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <img
-              src={`https://japanese-memory-rsc.vercel.app${user.profile}`}
+              src={`https://bunn.ink${user.profile}`}
               alt="用户头像"
               className="h-10 w-10 rounded-full mr-2"
             />

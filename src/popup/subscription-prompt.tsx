@@ -31,7 +31,7 @@ export default function SubscriptionPrompt(props: { apiKeySetted?: boolean }) {
                     <div className="flex items-center text-sm text-muted-foreground text-center">
                         {t('subscription.learnMore')}
                         <a
-                            href="https://japanese-memory-rsc.vercel.app/"
+                            href="https://bunn.ink/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="ml-[2px] text-primary underline underline-offset-4 hover:text-muted-foreground"

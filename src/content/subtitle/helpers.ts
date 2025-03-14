@@ -116,7 +116,8 @@ export function checkSubtitle() {
 
 // 从图像中提取字幕
 export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]) {
-  const apiKey = await getApiKey();
+  // const apiKey = await getApiKey();
+  const apiKey = false
 
   if (apiKey) {
     // 有 API Key，直接请求 OpenAI 接口

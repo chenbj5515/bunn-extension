@@ -7,7 +7,7 @@ import "../i18n" // 导入i18n配置
 export default function UsageGuide() {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useState(i18n.language);
-  
+
   // 切换语言的函数
   const toggleLanguage = () => {
     const newLang = language === 'zh' ? 'en' : 'zh';
@@ -24,36 +24,37 @@ export default function UsageGuide() {
             <CardTitle className="text-lg">{t('usageGuide.title')}</CardTitle>
           </div>
         </div>
-        <CardDescription>
-          {t('usageGuide.forBestResults')} <a href="https://japanese-memory-rsc.vercel.app/" target="_blank" className="underline underline-offset-4 hover:text-primary">Bunn</a>.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.cmdShiftC.title')}</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-[18px] font-semibold mb-2">{t('usageGuide.shortcuts.cmdShiftC.title')}</h3>
+          <p className="text-[14px] text-muted-foreground">
             {t('usageGuide.shortcuts.cmdShiftC.netflix')}
           </p>
-          <p className="text-muted-foreground">
+          <p className="text-[14px] text-muted-foreground">
             {t('usageGuide.shortcuts.cmdShiftC.youtube')}
           </p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.cmdShiftR.title')}</h3>
-          <p className="text-muted-foreground">{t('usageGuide.shortcuts.cmdShiftR.description')}</p>
+          <h3 className="text-[18px] font-semibold mb-2">{t('usageGuide.shortcuts.cmdShiftR.title')}</h3>
+          <p className="text-[14px] text-muted-foreground">{t('usageGuide.shortcuts.cmdShiftR.description')}</p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.t.title')}</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-[18px] font-semibold mb-2">{t('usageGuide.shortcuts.t.title')}</h3>
+          <p className="text-[14px] text-muted-foreground">
             {t('usageGuide.shortcuts.t.description')}
           </p>
         </div>
         <div>
-          <h3 className="text-[14px] font-semibold mb-2">{t('usageGuide.shortcuts.cc.title')}</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-[18px] font-semibold mb-2">{t('usageGuide.shortcuts.cc.title')}</h3>
+          <p className="text-[14px] text-muted-foreground">
             {t('usageGuide.shortcuts.cc.description')}
           </p>
         </div>
+        <CardDescription>
+          {t('usageGuide.forBestResults')} <a href="https://bunn.ink/" target="_blank" className="underline underline-offset-4 hover:text-primary">Bunn</a>
+          <div className="mt-2">{t('usageGuide.BunnIsBest')}</div>
+        </CardDescription>
       </CardContent>
     </Card>
   )

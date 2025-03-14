@@ -3,6 +3,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // 封装fetch请求
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
+  console.log('fetchApi', API_BASE_URL);
   const url = `${API_BASE_URL}${endpoint}`;
 
   // 检查是否是FormData类型

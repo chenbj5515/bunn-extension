@@ -1,7 +1,8 @@
 export default {
   usageGuide: {
     title: "使用指南",
-    forBestResults: "为获得最佳效果，请将字幕或者文本粘贴到",
+    forBestResults: "复制后，把内容粘贴到",
+    BunnIsBest: "Bunn会给提供翻译，音标，影子跟读和默写等功能，并且Bunn还会记录这次复制发生的场景，你可以随时一键进行场景再现。",
     shortcuts: {
       cmdShiftC: {
         title: "cmd+shift+c",

@@ -102,8 +102,7 @@ export function LanguageSelector() {
                                 {languages.map((language) => (
                                     <button
                                         key={language.value}
-                                        className={`w-full rounded-[6px] text-left px-4 py-2 hover:bg-gray-100 ${selectedLanguage === language.value ? "font-medium text-primary" : "text-gray-700"
-                                            }`}
+                                        className={`w-full rounded-[6px] text-left px-4 py-2 hover:bg-gray-100 ${selectedLanguage === language.value ? "font-medium text-primary" : "text-gray-700"}`}
                                         onClick={() => handleLanguageSelect(language.value)}
                                     >
                                         {language.label}

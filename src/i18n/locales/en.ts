@@ -1,7 +1,8 @@
 export default {
   usageGuide: {
     title: "Usage Guide",
-    forBestResults: "For best results, paste the subtitles or text into",
+    forBestResults: "After copying, paste the content to",
+    BunnIsBest: "Bunn provides translation, phonetic symbols, shadowing practice and dictation features. It also records the context of each copy, allowing you to instantly replay the scene anytime.",
     shortcuts: {
       cmdShiftC: {
         title: "cmd+shift+c",

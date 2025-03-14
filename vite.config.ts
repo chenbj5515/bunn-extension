@@ -66,7 +66,7 @@ export default defineConfig(({ command, mode }) => {
   // 设置环境变量
   const apiBaseUrl = isProduction 
     ? 'https://bunn-backend.vercel.app'
-    : 'http://localhost:3000';
+    : 'http://localhost:3001';
   
   return {
     plugins: [
