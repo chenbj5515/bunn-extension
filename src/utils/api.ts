@@ -1,5 +1,5 @@
 // 根据当前环境获取API基础URL
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = process.env.API_BASE_URL;
 
 // 封装fetch请求
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {

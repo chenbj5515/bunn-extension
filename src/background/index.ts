@@ -1,5 +1,5 @@
 import { fetchApi } from "@/utils/api";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = process.env.API_BASE_URL;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "EXTRACT_SUBTITLES") {

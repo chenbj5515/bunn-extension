@@ -35,8 +35,8 @@ export const speakText = (text: string, options?: IOptions, onFinish?: () => voi
     lastSpeakTime = now;
 
     const speechConfig = SpeechConfig.fromSubscription(
-        import.meta.env.VITE_PUBLIC_SUBSCRIPTION_KEY as string,
-        import.meta.env.VITE_PUBLIC_REGION as string
+        process.env.PUBLIC_SUBSCRIPTION_KEY as string,
+        process.env.PUBLIC_REGION as string
     );
 
     // 判断文本是否为日文

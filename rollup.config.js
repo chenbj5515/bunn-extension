@@ -3,7 +3,6 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
-import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
 import fs from 'fs';
 import path from 'path';
@@ -11,6 +10,7 @@ import path from 'path';
 // 环境变量处理
 const isProd = process.env.NODE_ENV === 'production';
 const isDev = !isProd;
+const target = process.env.TARGET; // 可能的值: popup, content, background
 
 // 根据环境变量设置API基础URL
 const apiBaseUrl = isProd
@@ -50,10 +50,11 @@ const commonPlugins = [
   }),
   replace({
     preventAssignment: true,
+    // 使用标准的process.env方式注入环境变量
     'process.env.NODE_ENV': JSON.stringify(isProd ? 'production' : 'development'),
-    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(apiBaseUrl),
-    'import.meta.env.VITE_PUBLIC_SUBSCRIPTION_KEY': JSON.stringify(env.VITE_PUBLIC_SUBSCRIPTION_KEY || ''),
-    'import.meta.env.VITE_PUBLIC_REGION': JSON.stringify(env.VITE_PUBLIC_REGION || '')
+    'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+    'process.env.PUBLIC_SUBSCRIPTION_KEY': JSON.stringify(env.PUBLIC_SUBSCRIPTION_KEY || ''),
+    'process.env.PUBLIC_REGION': JSON.stringify(env.PUBLIC_REGION || '')
   }),
   postcss({
     extensions: ['.css'],
@@ -100,10 +101,9 @@ function prepareHtml() {
   };
 }
 
-// 配置
-export default [
-  // 处理popup部分
-  {
+// 配置选项
+const configs = {
+  popup: {
     input: 'src/popup/index.tsx',
     output: {
       file: 'dist/popup.js',
@@ -116,8 +116,7 @@ export default [
     ]
   },
   
-  // 处理content script
-  {
+  content: {
     input: 'src/content/index.ts',
     output: {
       file: 'dist/content.js',
@@ -127,8 +126,7 @@ export default [
     plugins: commonPlugins
   },
   
-  // 处理background script
-  {
+  background: {
     input: 'src/background/index.ts',
     output: {
       file: 'dist/background.js',
@@ -137,4 +135,7 @@ export default [
     },
     plugins: commonPlugins
   }
-]; 
+};
+
+// 根据TARGET环境变量决定构建哪些部分
+export default target ? [configs[target]] : Object.values(configs); 
