@@ -6,10 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "rollup -c -w --environment NODE_ENV:development",
-    "dev:content": "rollup -c --environment NODE_ENV:development,TARGET:content -w",
-    "build": "rollup -c --environment NODE_ENV:production",
-    "build:extension": "node scripts/build.js",
-    "clean": "rm -rf dist"
+    "build": "rm -rf dist && rollup -c --environment NODE_ENV:production"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.3",
