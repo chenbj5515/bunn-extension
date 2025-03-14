@@ -1,19 +1,10 @@
 import { BookOpen } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "react-i18next"
-import { useState } from "react"
 import "../i18n" // 导入i18n配置
 
 export default function UsageGuide() {
-  const { t, i18n } = useTranslation();
-  const [language, setLanguage] = useState(i18n.language);
-
-  // 切换语言的函数
-  const toggleLanguage = () => {
-    const newLang = language === 'zh' ? 'en' : 'zh';
-    i18n.changeLanguage(newLang);
-    setLanguage(newLang);
-  };
+  const { t } = useTranslation();
 
   return (
     <Card>

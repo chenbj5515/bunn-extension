@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { fetchApi } from "@/utils/api"
 import { LanguageSelector } from "@/components/language-selector"
 import Loading from "@/components/loading"
+import { UserMenu } from "@/components/user-menu"
 import ApiKeyForm from "./api-key-form"
 import AuthForm from "./auth-form"
 import UsageGuide from "./usage-guide"
@@ -13,11 +14,15 @@ import SubscriptionPrompt from "./subscription-prompt"
 import "../i18n" // 导入i18n配置
 
 // 定义用户类型
-interface User {
+export interface User {
   user_id: string
-  current_plan: string | null
+  has_subscription: string | null
   profile: string
   name: string
+  email: string
+  today_ocr_count: number
+  today_translation_count: number
+  exp: number
 }
 
 export default function SettingsPage() {
@@ -63,6 +68,8 @@ export default function SettingsPage() {
     return <Loading />
   }
 
+  console.log(user, "user===========")
+
   return (
     <div className="container mx-auto px-4 py-4 max-w-4xl">
       {/* 添加语言切换按钮 */}
@@ -70,33 +77,12 @@ export default function SettingsPage() {
         <LanguageSelector />
       </div>
 
-      {/* 当能获取到用户信息时，在 Settings 上方显示头像和用户名 */}
-      {user ? (
+      {/* 使用新的UserMenu组件 */}
+      {user && (
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <img
-              src={`https://bunn.ink${user.profile}`}
-              alt="用户头像"
-              className="h-10 w-10 rounded-full mr-2"
-            />
-            <span className="text-[12px] font-medium">{user.name}</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mr-[50px] text-[12px] text-white bg-black"
-            onClick={() => {
-              fetchApi("/api/user/logout", {
-                credentials: "include"
-              }).then(() => {
-                window.location.reload()
-              })
-            }}
-          >
-            {t('loginPage.signOut')}
-          </Button>
+          <UserMenu user={user} />
         </div>
-      ) : null}
+      )}
 
       {/* 没有获取到用户信息（未登录）时，展示原有的 Sign in 和 Use API Key 选项 */}
       {!user && !hasStoredApiKey && (
@@ -153,7 +139,7 @@ export default function SettingsPage() {
       {/* 当能获取到用户信息时，根据 current_plan 字段展示对应的内容 */}
       {user ? (
         <>
-          {user.current_plan !== null ? <UsageGuide /> : (
+          {user.has_subscription !== null ? <UsageGuide /> : (
             <>
               {hasStoredApiKey ? (
                 // 已登录且设置了API KEY的情况

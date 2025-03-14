@@ -84,10 +84,17 @@ export default defineConfig(({ command, mode }) => {
           background: path.resolve(__dirname, 'src/background/index.ts'),
         },
         output: {
-          // 所有文件直接输出到根目录
+          // 修改文件名格式，确保不以下划线开头
           entryFileNames: '[name].js',
-          chunkFileNames: '[name]-[hash].js',
-          assetFileNames: '[name]-[hash].[ext]',
+          chunkFileNames: 'chunks/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+          // 添加manualChunks配置，避免生成以下划线开头的文件
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              // 将node_modules中的依赖打包到vendors目录
+              return `vendors/${id.split('node_modules/').pop()?.split('/')[0] ?? 'index'}`;
+            }
+          }
         },
       },
       emptyOutDir: true,

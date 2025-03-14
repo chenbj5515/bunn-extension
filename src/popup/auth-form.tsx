@@ -8,12 +8,13 @@ import { useTranslation } from "react-i18next"
 import "../i18n" // 导入i18n配置
 
 export default function AuthForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isGithubLoading, setIsGithubLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const { t } = useTranslation();
 
   async function onGitHubSignIn() {
     try {
-      setIsLoading(true)
+      setIsGithubLoading(true)
 
       // 获取 CSRF token
       const { csrf_token } = await fetchApi("/auth/csrf-token", {
@@ -32,13 +33,13 @@ export default function AuthForm() {
     } catch (error) {
       console.error("GitHub 登录错误：", error)
     } finally {
-      setIsLoading(false)
+      setIsGithubLoading(false)
     }
   }
 
   async function onGoogleSignIn() {
     try {
-      setIsLoading(true)
+      setIsGoogleLoading(true)
       // 获取 CSRF token
       const { csrf_token } = await fetchApi("/auth/csrf-token", {
         credentials: "include"
@@ -55,14 +56,14 @@ export default function AuthForm() {
     } catch (error) {
       console.error("Google 登录错误：", error)
     } finally {
-      setIsLoading(false)
+      setIsGoogleLoading(false)
     }
   }
 
   return (
     <div className="grid gap-4">
-      <Button variant="outline" type="button" disabled={isLoading} className="w-full" onClick={onGitHubSignIn}>
-        {isLoading ? (
+      <Button variant="outline" type="button" disabled={isGithubLoading} className="w-full" onClick={onGitHubSignIn}>
+        {isGithubLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <Icons.github className="mr-2 h-4 w-4" />
@@ -77,8 +78,8 @@ export default function AuthForm() {
           <span className="bg-background px-2 text-muted-foreground">{t('auth.or')}</span>
         </div>
       </div>
-      <Button variant="outline" type="button" disabled={isLoading} className="w-full" onClick={onGoogleSignIn}>
-        {isLoading ? (
+      <Button variant="outline" type="button" disabled={isGoogleLoading} className="w-full" onClick={onGoogleSignIn}>
+        {isGoogleLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <Icons.google className="mr-2 h-4 w-4" />
