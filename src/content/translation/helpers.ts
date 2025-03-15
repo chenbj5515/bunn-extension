@@ -746,3 +746,22 @@ export function removeYoutubeTranslateButton() {
         console.error('移除YouTube评论区翻译按钮时出错:', error);
     }
 }
+
+// 获取包含选中文本的段落节点
+export function getParagraphNode(selection: Selection): Element | null {
+    if (!selection.rangeCount) return null;
+
+    let node = selection.anchorNode;
+
+    // 确保 node 是一个元素，而不是文本节点
+    while (node && node.nodeType !== 1) {
+        node = node.parentNode;
+    }
+
+    // 找到最近的 <p> 或 <div> 之类的块级元素
+    while (node && (node as Element).tagName && !/P|DIV/.test((node as Element).tagName)) {
+        node = node.parentNode;
+    }
+
+    return node as Element;
+}

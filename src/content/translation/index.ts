@@ -9,7 +9,6 @@ import {
     handleTranslationUpdate,
     handleExplanationStream,
     handlePlainTextTranslation,
-    getTargetNode,
     findParagraphInsertPosition,
     createTempContainer,
     insertTempContainer,
@@ -17,7 +16,8 @@ import {
     addUnderlineWithPopup,
     isEntireParagraphSelected,
     showPopup,
-    removeYoutubeTranslateButton
+    removeYoutubeTranslateButton,
+    getParagraphNode
 } from './helpers';
 
 // 业务流程：翻译
@@ -229,25 +229,6 @@ async function processSelection(selection: Selection) {
         // 如果选中文本不是段落文本的一部分，按整段处理
         await translateFullParagraph(paragraphNode);
     }
-}
-
-// 获取包含选中文本的段落节点
-function getParagraphNode(selection: Selection): Element | null {
-    if (!selection.rangeCount) return null;
-
-    let node = selection.anchorNode;
-
-    // 确保 node 是一个元素，而不是文本节点
-    while (node && node.nodeType !== 1) {
-        node = node.parentNode;
-    }
-
-    // 找到最近的 <p> 或 <div> 之类的块级元素
-    while (node && (node as Element).tagName && !/P|DIV/.test((node as Element).tagName)) {
-        node = node.parentNode;
-    }
-
-    return node as Element;
 }
 
 // 处理整个段落的翻译
