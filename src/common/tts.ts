@@ -34,6 +34,8 @@ export const speakText = (text: string, options?: IOptions, onFinish?: () => voi
     // 更新最后播放时间
     lastSpeakTime = now;
 
+    console.log('process.env.PUBLIC_SUBSCRIPTION_KEY', process.env.PUBLIC_SUBSCRIPTION_KEY);
+    
     const speechConfig = SpeechConfig.fromSubscription(
         process.env.PUBLIC_SUBSCRIPTION_KEY as string,
         process.env.PUBLIC_REGION as string
@@ -48,27 +50,49 @@ export const speakText = (text: string, options?: IOptions, onFinish?: () => voi
 
     speechConfig.speechSynthesisVoiceName = options?.voicerName || voicerName;
     speechConfig.speechSynthesisOutputFormat = 8;
-    const complete_cb = function () {
-        synthesizer?.close();
-        synthesizer = undefined;
-    };
-    const err_cb = function () {
-        synthesizer?.close();
-    };
-
+    
+    // 创建播放器
     const player = new SpeakerAudioDestination();
-
-    player.onAudioEnd = () => {
-        synthesizer?.close();
-        synthesizer = undefined;
-        onFinish?.();
-    };
-
     const audioConfig = AudioConfig.fromSpeakerOutput(player);
-
+    
+    // 创建合成器
     let synthesizer: SpeechSynthesizer | undefined = new SpeechSynthesizer(
         speechConfig,
         audioConfig
     );
+    
+    // 重构回调函数，避免递归调用
+    const complete_cb = function () {
+        if (synthesizer) {
+            const synth = synthesizer;
+            synthesizer = undefined;
+            synth.close();
+        }
+    };
+    
+    const err_cb = function () {
+        if (synthesizer) {
+            const synth = synthesizer;
+            synthesizer = undefined;
+            synth.close();
+        }
+    };
+
+    // 修复onAudioEnd回调以避免递归
+    player.onAudioEnd = () => {
+        // 保存引用并清除synthesizer
+        if (synthesizer) {
+            const synth = synthesizer;
+            synthesizer = undefined;
+            // 先调用onFinish回调
+            if (onFinish) {
+                onFinish();
+            }
+            // 最后关闭合成器
+            synth.close();
+        }
+    };
+
+    // 开始合成
     synthesizer.speakTextAsync(text, complete_cb, err_cb);
 };

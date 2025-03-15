@@ -50,11 +50,10 @@ const commonPlugins = [
   }),
   replace({
     preventAssignment: true,
-    // 使用标准的process.env方式注入环境变量
     'process.env.NODE_ENV': JSON.stringify(isProd ? 'production' : 'development'),
     'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
-    'process.env.PUBLIC_SUBSCRIPTION_KEY': JSON.stringify(env.PUBLIC_SUBSCRIPTION_KEY || ''),
-    'process.env.PUBLIC_REGION': JSON.stringify(env.PUBLIC_REGION || '')
+    'process.env.PUBLIC_SUBSCRIPTION_KEY': JSON.stringify(env.PUBLIC_SUBSCRIPTION_KEY?.replace(/"/g, '') || ''),
+    'process.env.PUBLIC_REGION': JSON.stringify(env.PUBLIC_REGION?.replace(/"/g, '') || '')
   }),
   postcss({
     extensions: ['.css'],
