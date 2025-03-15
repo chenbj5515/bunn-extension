@@ -402,14 +402,16 @@ export function replaceWithTranslatedNode(translatedHTML: string, tempContainer:
 }
 
 // 为选中文本添加下划线并关联弹窗
-export function addUnderlineWithPopup(range: Range, selectedText: string, popupId: string): HTMLSpanElement {
-    const textNode = range.startContainer as Text;
-    const startOffset = range.startOffset;
-    const endOffset = range.endOffset;
-
-    const beforeText = textNode.textContent?.substring(0, startOffset) || '';
-    const afterText = textNode.textContent?.substring(endOffset) || '';
-
+export function addUnderlineWithPopup(paragraphNode: Element, selectedText: string, popupId: string): HTMLSpanElement | null {
+    // 获取段落文本内容
+    const paragraphText = paragraphNode.textContent || '';
+    
+    // 如果段落不包含选中文本，则返回
+    if (!paragraphText.includes(selectedText)) {
+        console.error('段落中未找到选中文本:', selectedText);
+        return null;
+    }
+    
     // 创建带下划线的span
     const span = document.createElement('span');
     span.className = 'comfy-trans-underlined';
@@ -420,26 +422,54 @@ export function addUnderlineWithPopup(range: Range, selectedText: string, popupI
     span.style.cursor = 'pointer';
     span.style.position = 'relative';
     span.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
-
+    
     // 设置popup id到dataset
     span.dataset.popup = popupId;
-
+    
     // 添加鼠标悬停事件
     span.addEventListener('mouseenter', handlePopupDisplay);
-
+    
     // 添加点击事件，防止点击下划线文本时关闭Popup
     span.addEventListener('click', handlePopupDisplay);
-
-    // 替换原始文本节点
-    const fragment = document.createDocumentFragment();
-    fragment.appendChild(document.createTextNode(beforeText));
-    fragment.appendChild(span);
-    fragment.appendChild(document.createTextNode(afterText));
-
-    if (textNode.parentNode) {
-        textNode.parentNode.replaceChild(fragment, textNode);
+    
+    // 使用TreeWalker遍历段落中的文本节点，查找选中文本
+    const walker = document.createTreeWalker(
+        paragraphNode,
+        NodeFilter.SHOW_TEXT,
+        null
+    );
+    
+    let currentNode;
+    let found = false;
+    
+    while (currentNode = walker.nextNode()) {
+        const nodeText = currentNode.textContent || '';
+        const index = nodeText.indexOf(selectedText);
+        
+        if (index !== -1) {
+            // 找到了包含选中文本的节点
+            const beforeText = nodeText.substring(0, index);
+            const afterText = nodeText.substring(index + selectedText.length);
+            
+            // 替换原始文本节点
+            const fragment = document.createDocumentFragment();
+            fragment.appendChild(document.createTextNode(beforeText));
+            fragment.appendChild(span);
+            fragment.appendChild(document.createTextNode(afterText));
+            
+            if (currentNode.parentNode) {
+                currentNode.parentNode.replaceChild(fragment, currentNode);
+                found = true;
+                break;
+            }
+        }
     }
-
+    
+    if (!found) {
+        console.error('无法在DOM树中找到文本节点');
+        return null;
+    }
+    
     return span;
 }
 

@@ -222,7 +222,7 @@ async function processSelection(selection: Selection) {
         } else {
             console.log('处理部分文本翻译');
             // 处理部分文本的翻译
-            await translatePartialText(selectedText, range, fullParagraphText);
+            await translatePartialText(selectedText, range, fullParagraphText, paragraphNode);
         }
     } else {
         console.log('选中文本不是段落的一部分，按整段处理');
@@ -288,7 +288,21 @@ async function translateFullParagraph(targetNode: Element) {
 }
 
 // 处理部分文本的翻译
-async function translatePartialText(selectedText: string, range: Range, fullParagraphText: string) {
+async function translatePartialText(selectedText: string, range: Range, fullParagraphText: string, paragraphNode: Element) {
+    // 使用AI修正选中内容，确保是完整的短语
+    try {
+        const correctedText = await askAI(`在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。`);
+        
+        // 如果AI返回了有效的修正文本，则使用修正后的文本
+        if (correctedText && correctedText.trim()) {
+            console.log(`AI修正文本: 原文"${selectedText}" -> 修正后"${correctedText}"`);
+            selectedText = correctedText.trim();
+        }
+    } catch (error) {
+        console.error('AI修正文本失败:', error);
+        // 修正失败时继续使用原始选中文本
+    }
+
     // 获取选中文本的位置
     const rect = range.getBoundingClientRect();
     // 在选中文本右侧偏下一点显示
@@ -328,7 +342,10 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
         handleExplanationStream(explanationDiv, popup, selectedText, await translationPromise);
 
         // 8. 为选中文本添加下划线并创建带有悬浮提示的span
-        addUnderlineWithPopup(range, selectedText, popupId);
+        const underlineSpan = addUnderlineWithPopup(paragraphNode, selectedText, popupId);
+        if (!underlineSpan) {
+            console.warn('无法为选中文本添加下划线，可能是文本在DOM中未找到');
+        }
     } catch (error) {
         console.error('翻译过程中出错:', error);
         alert('翻译失败，请查看控制台获取详细错误信息');
