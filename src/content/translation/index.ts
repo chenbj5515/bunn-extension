@@ -218,24 +218,33 @@ async function processSelection(selection: Selection) {
     console.log('选中的文本:', selectedText);
     console.log('段落文本:', fullParagraphText);
     
-    // 检查选中的文本是否是段落文本的一部分
-    if (selectedText && fullParagraphText.includes(selectedText)) {
-        // 是段落文本的一部分，判断是否选中整段
-        const isFullParagraph = isEntireParagraphSelected(paragraphNode, selectedText);
-        
-        if (isFullParagraph) {
-            console.log('处理整段翻译');
-            // 处理整个段落的翻译
-            await translateFullParagraph(paragraphNode);
-        } else {
-            console.log('处理部分文本翻译');
-            // 处理部分文本的翻译
-            await translatePartialText(selectedText, range, fullParagraphText, paragraphNode);
-        }
-    } else {
-        console.log('选中文本不是段落的一部分，按整段处理');
-        // 如果选中文本不是段落文本的一部分，按整段处理
+    // 使用判定函数决定是整段翻译还是部分文本翻译
+    if (shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText)) {
+        console.log('处理整段翻译');
         await translateFullParagraph(paragraphNode);
+    } else {
+        console.log('处理部分文本翻译');
+        await translatePartialText(selectedText, range, fullParagraphText, paragraphNode);
+    }
+}
+
+// 判断是否应该按整段翻译的函数
+function shouldTranslateAsFullParagraph(selectedText: string, paragraphNode: Element, fullParagraphText: string): boolean {
+    // 检查是否包含标点符号，如果包含则按整段处理
+    const punctuationRegex = /[.,;!?，。；！？、：""''（）【】《》]/;
+    if (punctuationRegex.test(selectedText)) {
+        console.log('选中文本包含标点符号，按整段处理');
+        return true;
+    }
+    
+    // 检查选中文本是否是段落的一部分
+    if (fullParagraphText.includes(selectedText)) {
+        // 是段落文本的一部分，判断是否选中整段
+        return isEntireParagraphSelected(paragraphNode, selectedText);
+    } else {
+        // 选中文本不是段落的一部分，按整段处理
+        console.log('选中文本不是段落的一部分，按整段处理');
+        return true;
     }
 }
 
