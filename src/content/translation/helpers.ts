@@ -414,14 +414,10 @@ export function addUnderlineWithPopup(paragraphNode: Element, selectedText: stri
     
     // 创建带下划线的span
     const span = document.createElement('span');
-    span.className = 'comfy-trans-underlined';
-    span.textContent = selectedText;
     span.style.textDecoration = 'underline';
-    span.style.textDecorationStyle = 'dotted';
-    span.style.textDecorationColor = '#3498db';
     span.style.cursor = 'pointer';
     span.style.position = 'relative';
-    span.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+    span.textContent = selectedText;
     
     // 设置popup id到dataset
     span.dataset.popup = popupId;
@@ -670,10 +666,7 @@ export function addUnderlineToSelection(range: Range): HTMLSpanElement {
     const afterText = textNode.textContent?.substring(endOffset) || '';
 
     const span = document.createElement('span');
-    span.className = 'comfy-trans-underlined';
     span.style.textDecoration = 'underline';
-    span.style.textDecorationStyle = 'dotted';
-    span.style.textDecorationColor = '#3498db';
     span.style.cursor = 'pointer';
     span.textContent = selectedContent;
 
