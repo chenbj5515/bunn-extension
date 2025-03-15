@@ -198,30 +198,56 @@ async function processSelection(selection: Selection) {
     }
 
     const selectedText = selection.toString().trim();
-
     const range = selection.getRangeAt(0);
-
-    const targetNode = getTargetNode(range, selectedText);
-
-    if (!targetNode) {
-        console.log('未找到选中文本所在元素');
+    
+    // 使用新的函数获取段落节点
+    const paragraphNode = getParagraphNode(selection);
+    
+    if (!paragraphNode) {
+        console.log('未找到选中文本所在的段落节点');
         return;
     }
-
-    const fullParagraphText = targetNode.textContent || '';
-
-    // 判断是否选中了整个段落
-    const isFullParagraph = isEntireParagraphSelected(targetNode, selectedText);
-
-    if (isFullParagraph) {
-        console.log('处理整段翻译');
-        // 处理整个段落的翻译
-        await translateFullParagraph(targetNode);
+    
+    const fullParagraphText = paragraphNode.textContent || '';
+    
+    // 检查选中的文本是否是段落文本的一部分
+    if (selectedText && fullParagraphText.includes(selectedText)) {
+        // 是段落文本的一部分，判断是否选中整段
+        const isFullParagraph = isEntireParagraphSelected(paragraphNode, selectedText);
+        
+        if (isFullParagraph) {
+            console.log('处理整段翻译');
+            // 处理整个段落的翻译
+            await translateFullParagraph(paragraphNode);
+        } else {
+            console.log('处理部分文本翻译');
+            // 处理部分文本的翻译
+            await translatePartialText(selectedText, range, fullParagraphText);
+        }
     } else {
-        console.log('处理部分文本翻译');
-        // 处理部分文本的翻译
-        await translatePartialText(selectedText, range, fullParagraphText);
+        console.log('选中文本不是段落的一部分，按整段处理');
+        // 如果选中文本不是段落文本的一部分，按整段处理
+        await translateFullParagraph(paragraphNode);
     }
+}
+
+// 获取包含选中文本的段落节点
+function getParagraphNode(selection: Selection): Element | null {
+    if (!selection.rangeCount) return null;
+
+    let node = selection.anchorNode;
+
+    // 确保 node 是一个元素，而不是文本节点
+    while (node && node.nodeType !== 1) {
+        node = node.parentNode;
+    }
+
+    // 找到最近的 <p> 或 <div> 之类的块级元素
+    while (node && (node as Element).tagName && !/P|DIV/.test((node as Element).tagName)) {
+        node = node.parentNode;
+    }
+
+    return node as Element;
 }
 
 // 处理整个段落的翻译
