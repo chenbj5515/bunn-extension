@@ -753,13 +753,11 @@ export function getParagraphNode(selection: Selection): Element | null {
 
     let node = selection.anchorNode;
 
+    console.log('node:', node);
+    console.log('node.parentNode:', node?.parentNode);
+
     // 确保 node 是一个元素，而不是文本节点
     while (node && node.nodeType !== 1) {
-        node = node.parentNode;
-    }
-
-    // 找到最近的 <p> 或 <div> 之类的块级元素
-    while (node && (node as Element).tagName && !/P|DIV/.test((node as Element).tagName)) {
         node = node.parentNode;
     }
 

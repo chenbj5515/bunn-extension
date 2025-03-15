@@ -214,6 +214,9 @@ async function processSelection(selection: Selection) {
     }
     
     const fullParagraphText = paragraphNode.textContent || '';
+
+    console.log('选中的文本:', selectedText);
+    console.log('段落文本:', fullParagraphText);
     
     // 检查选中的文本是否是段落文本的一部分
     if (selectedText && fullParagraphText.includes(selectedText)) {
@@ -246,7 +249,7 @@ async function translateFullParagraph(targetNode: Element) {
     }
 
     // 2. 创建临时容器
-    const originalHTML = targetNode.outerHTML;
+    const originalHTML = targetNode.innerHTML;
     const tempContainer = createTempContainer();
 
     // 3. 插入临时容器
