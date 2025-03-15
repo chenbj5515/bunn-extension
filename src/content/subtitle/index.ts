@@ -4,11 +4,11 @@ import {
   isYouTube,
   lastCopiedTime,
   addNotificationStyle,
-  showNotification,
   checkSubtitle,
   captureYoutubeSubtitle,
   updateLastCopiedTime
 } from './helpers';
+import { showNotification } from '@/common/notify';
 
 // 业务流程：在Youtube上获取字幕和影子跟读
 // 1 用户打开一个含有内置字幕的Youtube视频（比如：https://www.youtube.com/watch?v=QrwxVi9hWJg&t=374s）

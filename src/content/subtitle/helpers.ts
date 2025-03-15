@@ -1,4 +1,4 @@
-// 辅助函数和工具函数
+import { showNotification } from '@/common/notify';
 
 // 全局变量
 export let lastSubtitle = { text: '', startTime: 0 };
@@ -6,8 +6,6 @@ export let isNetflix = window.location.hostname.includes('netflix.com');
 export let isYouTube = window.location.hostname.includes('youtube.com');
 export let isRequestInProgress = false; // 标记是否有请求正在进行中
 export let lastCopiedTime: number | null = null; // 记录上次ctrl+c指令的时间
-
-import { getApiKey } from '../../common/api';
 
 // 创建并添加通知元素样式
 export function addNotificationStyle() {
@@ -56,38 +54,6 @@ export function addNotificationStyle() {
         }
     `;
   document.head.appendChild(style);
-}
-
-// 显示通知
-export function showNotification(message: string, isLoading = false) {
-  if (!document.body) return; // 确保document.body存在
-
-  const notification = document.createElement('div');
-  notification.className = 'netflix-subtitle-notification';
-
-  if (isLoading) {
-    notification.classList.add('loading');
-    const spinner = document.createElement('div');
-    spinner.className = 'spinner';
-    notification.appendChild(spinner);
-  }
-
-  const messageSpan = document.createElement('span');
-  messageSpan.textContent = message;
-  notification.appendChild(messageSpan);
-
-  document.body.appendChild(notification);
-
-  // 触发动画
-  setTimeout(() => notification.classList.add('show'), 10);
-
-  // 如果不是加载中状态，3秒后移除通知
-  if (!isLoading) {
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
-  }
 }
 
 // 隐藏通知
