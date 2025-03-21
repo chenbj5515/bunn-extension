@@ -53,8 +53,8 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none">
-        <Avatar className="w-8 h-8 cursor-pointer">
-          <AvatarImage src={user.image} />
+        <Avatar className="w-10 h-10 cursor-pointer">
+          <AvatarImage src={`https://bunn.ink${user.image}`} />
           <AvatarFallback>Name</AvatarFallback>
         </Avatar>
         <span className="text-sm">{user.name}</span>
