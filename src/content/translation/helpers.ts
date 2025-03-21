@@ -767,19 +767,99 @@ export function removeYoutubeTranslateButton() {
     }
 }
 
-// 获取包含选中文本的段落节点
+/**
+ * 根据鼠标位置获取最近的完整段落元素
+ * @param selection 当前选区
+ * @returns 段落DOM元素
+ */
 export function getParagraphNode(selection: Selection): Element | null {
-    if (!selection.rangeCount) return null;
+    // 尝试获取鼠标当前位置
+    let mouseX = 0;
+    let mouseY = 0;
+    let hasValidCoordinates = false;
 
-    let node = selection.anchorNode;
-
-    console.log('node:', node);
-    console.log('node.parentNode:', node?.parentNode);
-
-    // 确保 node 是一个元素，而不是文本节点
-    while (node && node.nodeType !== 1) {
-        node = node.parentNode;
+    // 如果有window.event且是MouseEvent类型
+    if (window.event && window.event instanceof MouseEvent) {
+        const evt = window.event as MouseEvent;
+        // 检查坐标是否为有效的有限数值
+        if (Number.isFinite(evt.clientX) && Number.isFinite(evt.clientY)) {
+            mouseX = evt.clientX;
+            mouseY = evt.clientY;
+            hasValidCoordinates = true;
+        }
     }
 
-    return node as Element;
+    // 如果没有有效的鼠标事件坐标，则尝试从选区获取
+    if (!hasValidCoordinates && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // 确保获取到的坐标是有效数值
+        if (Number.isFinite(rect.left) && Number.isFinite(rect.top)) {
+            mouseX = rect.left;
+            mouseY = rect.top;
+            hasValidCoordinates = true;
+        }
+    }
+    
+    // 如果没有有效坐标，回退到传统方法获取元素
+    if (!hasValidCoordinates) {
+        if (selection.rangeCount > 0) {
+            let node = selection.anchorNode;
+            // 确保node是一个元素，而不是文本节点
+            while (node && node.nodeType !== 1) {
+                node = node.parentNode;
+            }
+            return node as Element;
+        }
+        return null;
+    }
+    
+    // 使用有效坐标获取元素
+    const elementAtPoint = document.elementFromPoint(mouseX, mouseY);
+    if (!elementAtPoint) return null;
+    
+    // 定义可能的段落标签
+    const paragraphTags = ['P', 'DIV', 'LI', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'ARTICLE', 'SECTION'];
+    
+    // 从当前元素开始向上遍历DOM树，查找合适的段落元素
+    let currentElement: Element | null = elementAtPoint;
+    let paragraphElement: Element | null = null;
+    
+    while (currentElement && currentElement !== document.body) {
+        // 判断当前元素是否为段落元素
+        if (paragraphTags.includes(currentElement.tagName)) {
+            // 检查元素是否包含足够的文本内容
+            const textContent = currentElement.textContent?.trim() || '';
+            
+            // 如果文本长度大于30个字符或者是特定的列表项/段落标签，则认为是有效的段落
+            if (textContent.length > 30 || 
+                ['P', 'LI', 'BLOCKQUOTE'].includes(currentElement.tagName) ||
+                currentElement.classList.contains('paragraph') ||
+                (currentElement.childNodes.length > 1 && textContent.length > 0)) {
+                
+                // 避免选择太大的容器如整个article或section
+                const nextParent: Element | null = currentElement.parentElement;
+                if (nextParent && 
+                    ['ARTICLE', 'SECTION'].includes(currentElement.tagName) &&
+                    nextParent.children.length <= 3) {
+                    currentElement = nextParent;
+                    continue;
+                }
+                
+                paragraphElement = currentElement;
+                break;
+            }
+        }
+        
+        // 继续向上查找
+        currentElement = currentElement.parentElement;
+    }
+    
+    // 如果没有找到合适的段落元素，则返回当前元素的父元素
+    if (!paragraphElement && elementAtPoint) {
+        paragraphElement = elementAtPoint.parentElement;
+    }
+    
+    return paragraphElement;
 }
