@@ -204,20 +204,20 @@ async function processSelection(selection: Selection) {
 
     const selectedText = selection.toString().trim();
     const range = selection.getRangeAt(0);
-    
+
     // 使用新的函数获取段落节点
     const paragraphNode = getParagraphNode(selection);
-    
+
     if (!paragraphNode) {
         console.log('未找到选中文本所在的段落节点');
         return;
     }
-    
+
     const fullParagraphText = paragraphNode.textContent || '';
 
     console.log('选中的文本:', selectedText);
     console.log('段落文本:', fullParagraphText);
-    
+
     // 使用判定函数决定是整段翻译还是部分文本翻译
     if (shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText)) {
         console.log('处理整段翻译');
@@ -236,7 +236,7 @@ function shouldTranslateAsFullParagraph(selectedText: string, paragraphNode: Ele
         console.log('选中文本包含标点符号，按整段处理');
         return true;
     }
-    
+
     // 检查选中文本是否是段落的一部分
     if (fullParagraphText.includes(selectedText)) {
         // 是段落文本的一部分，判断是否选中整段
@@ -259,6 +259,8 @@ async function translateFullParagraph(targetNode: Element) {
 
     // 2. 创建临时容器
     const originalHTML = targetNode.innerHTML;
+
+    console.log(targetNode, "targetNode===========")
     const tempContainer = createTempContainer();
 
     // 3. 插入临时容器
@@ -267,18 +269,22 @@ async function translateFullParagraph(targetNode: Element) {
     try {
         // 4. 发送原始HTML到AI并处理结果
         // 判断是否为HTML标签字符串
-        const isHTMLString = /<[a-z][\s\S]*>/i.test(originalHTML);
+        // const isHTMLString = /<[a-z][\s\S]*>/i.test(originalHTML);
 
-        if (isHTMLString) {
-            // 原流程：处理HTML
-            const translatedHTML = await getTranslatedHTML(originalHTML);
-            // 5. 创建并插入翻译后的节点
-            replaceWithTranslatedNode(translatedHTML, tempContainer);
-        } else {
-            // 新流程：直接翻译文本
-            const originalText = targetNode.textContent || '';
-            await handlePlainTextTranslation(originalText, tempContainer);
-        }
+        // if (isHTMLString) {
+        //     // 原流程：处理HTML
+        //     console.log(originalHTML, "originalHTML===========")
+        //     const translatedHTML = await getTranslatedHTML(originalHTML);
+        //     console.log(translatedHTML, "translatedHTML===========")
+        //     // 5. 创建并插入翻译后的节点
+        //     replaceWithTranslatedNode(translatedHTML, tempContainer);
+        // } else {
+        //     // 新流程：直接翻译文本
+        //     const originalText = targetNode.textContent || '';
+        //     await handlePlainTextTranslation(originalText, tempContainer);
+        // }
+        const originalText = targetNode.textContent || '';
+        await handlePlainTextTranslation(originalText, tempContainer);
     } catch (error) {
         console.error('翻译过程中出错:', error);
         tempContainer.innerHTML = '翻译失败，请查看控制台获取详细错误信息';
@@ -290,7 +296,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
     // 使用AI修正选中内容，确保是完整的短语
     try {
         const correctedText = await askAI(`在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。`);
-        
+
         // 如果AI返回了有效的修正文本，则使用修正后的文本
         if (correctedText && correctedText.trim()) {
             console.log(`AI修正文本: 原文"${selectedText}" -> 修正后"${correctedText}"`);

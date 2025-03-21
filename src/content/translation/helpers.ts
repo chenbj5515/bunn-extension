@@ -389,7 +389,7 @@ export function replaceWithTranslatedNode(translatedHTML: string, tempContainer:
     translatedElement.innerHTML = translatedHTML;
 
     // 获取翻译后的节点
-    const translatedNode = translatedElement.firstChild as HTMLElement;
+    const translatedNode = translatedElement as HTMLElement;
 
     if (translatedNode) {
         // 直接使用AI返回的结果，不添加额外的类名和样式
