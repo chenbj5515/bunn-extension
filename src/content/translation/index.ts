@@ -252,6 +252,7 @@ function shouldTranslateAsFullParagraph(selectedText: string, paragraphNode: Ele
 async function translateFullParagraph(targetNode: Element) {
     // 1. 找到插入位置
     const insertPosition = findParagraphInsertPosition(targetNode);
+    
     if (!insertPosition) {
         console.error('无法找到有效的插入位置');
         return;
@@ -268,21 +269,6 @@ async function translateFullParagraph(targetNode: Element) {
 
     try {
         // 4. 发送原始HTML到AI并处理结果
-        // 判断是否为HTML标签字符串
-        // const isHTMLString = /<[a-z][\s\S]*>/i.test(originalHTML);
-
-        // if (isHTMLString) {
-        //     // 原流程：处理HTML
-        //     console.log(originalHTML, "originalHTML===========")
-        //     const translatedHTML = await getTranslatedHTML(originalHTML);
-        //     console.log(translatedHTML, "translatedHTML===========")
-        //     // 5. 创建并插入翻译后的节点
-        //     replaceWithTranslatedNode(translatedHTML, tempContainer);
-        // } else {
-        //     // 新流程：直接翻译文本
-        //     const originalText = targetNode.textContent || '';
-        //     await handlePlainTextTranslation(originalText, tempContainer);
-        // }
         const originalText = targetNode.textContent || '';
         await handlePlainTextTranslation(originalText, tempContainer);
     } catch (error) {

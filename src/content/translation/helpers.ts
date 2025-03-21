@@ -596,8 +596,15 @@ export function findInsertPosition(startContainer: Node): Node {
 }
 
 // 插入翻译段落
-export function insertTranslatedParagraph(translatedParagraph: HTMLParagraphElement, insertPosition: InsertPosition) {
-    insertPosition.parentNode.insertBefore(translatedParagraph, insertPosition.nextSibling);
+export function insertTranslatedParagraph(translatedParagraph: HTMLParagraphElement, insertPosition: InsertPosition | {node: Element, position: string}) {
+    // 处理特殊的"append"位置，表示添加到元素内部尾部
+    if ('position' in insertPosition && insertPosition.position === 'append') {
+        // 将翻译添加到元素的内部尾部
+        insertPosition.node.appendChild(translatedParagraph);
+    } else {
+        // 使用原来的插入逻辑
+        (insertPosition as InsertPosition).parentNode.insertBefore(translatedParagraph, (insertPosition as InsertPosition).nextSibling);
+    }
 }
 
 // 添加含义和音标到翻译中
@@ -687,7 +694,20 @@ export function addUnderlineToSelection(range: Range): HTMLSpanElement {
  * @param targetNode 目标节点
  * @returns 插入位置对象，如果找不到则返回null
  */
-export function findParagraphInsertPosition(targetNode: Element): InsertPosition | null {
+export function findParagraphInsertPosition(targetNode: Element): InsertPosition | {node: Element, position: string} | null {
+    // 检查是否是Reddit网站且目标节点是h1标签
+    const isReddit = window.location.hostname.includes('reddit.com');
+    const isH1Tag = targetNode.tagName.toLowerCase() === 'h1';
+    
+    // 对于Reddit的h1标签，将插入位置设置为h1内部的尾部
+    if (isReddit && isH1Tag) {
+        return { 
+            node: targetNode, 
+            position: 'append' // 标记为append，表示要添加到内部尾部
+        };
+    }
+    
+    // 其他情况使用原来的逻辑
     const insertAfterNode = findInsertPosition(targetNode);
 
     if (!insertAfterNode || !insertAfterNode.parentNode) {
@@ -719,7 +739,7 @@ export function createTempContainer(): HTMLDivElement {
  * @param tempContainer 临时容器元素
  * @param insertPosition 插入位置
  */
-export function insertTempContainer(tempContainer: HTMLDivElement, insertPosition: InsertPosition): void {
+export function insertTempContainer(tempContainer: HTMLDivElement, insertPosition: InsertPosition | {node: Element, position: string}): void {
     insertTranslatedParagraph(tempContainer, insertPosition);
 }
 
