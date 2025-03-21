@@ -75,10 +75,10 @@ export async function initializeTranslation() {
 function handleTranslation(e: KeyboardEvent) {
     console.log('检测到按键T');
     const selection = window.getSelection();
-    if (!selection || !selection.toString().trim()) {
-        console.log('没有选中文本');
-        return;
-    }
+    // if (!selection || !selection.toString().trim()) {
+    //     console.log('没有选中文本');
+    //     return;
+    // }
     e.preventDefault();
     e.stopPropagation();
     processSelection(selection);
@@ -196,14 +196,9 @@ async function handleHighlight() {
 }
 
 // 处理选中文本事件
-async function processSelection(selection: Selection) {
-    if (!selection.rangeCount) {
-        console.log('没有选中范围，退出');
-        return;
-    }
+async function processSelection(selection: Selection | null) {
 
-    const selectedText = selection.toString().trim();
-    const range = selection.getRangeAt(0);
+    const selectedText = selection?.toString()?.trim() || "";
 
     // 使用新的函数获取段落节点
     const paragraphNode = getParagraphNode(selection);
@@ -224,6 +219,7 @@ async function processSelection(selection: Selection) {
         await translateFullParagraph(paragraphNode);
     } else {
         console.log('处理部分文本翻译');
+        const range = selection?.getRangeAt(0)!;
         await translatePartialText(selectedText, range, fullParagraphText, paragraphNode);
     }
 }
@@ -262,7 +258,7 @@ async function translateFullParagraph(targetNode: Element) {
     const originalHTML = targetNode.innerHTML;
 
     console.log(targetNode, "targetNode===========")
-    const tempContainer = createTempContainer();
+    const tempContainer = createTempContainer(targetNode);
 
     // 3. 插入临时容器
     insertTempContainer(tempContainer, insertPosition);

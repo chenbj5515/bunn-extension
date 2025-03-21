@@ -213,6 +213,18 @@ export async function handlePlainTextTranslation(
     translatedElement.id = uniqueId;
     translatedElement.setAttribute('data-trans-id', uniqueId);
 
+    // 保留原始容器的class和data属性
+    if (tempContainer.className) {
+        translatedElement.className = tempContainer.className;
+    }
+
+    // 复制所有dataset属性
+    for (const key in tempContainer.dataset) {
+        if (Object.prototype.hasOwnProperty.call(tempContainer.dataset, key)) {
+            translatedElement.dataset[key] = tempContainer.dataset[key] || '';
+        }
+    }
+
     tempContainer.replaceWith(translatedElement);
 
     // 使用流式API获取翻译
@@ -392,6 +404,25 @@ export function replaceWithTranslatedNode(translatedHTML: string, tempContainer:
     const translatedNode = translatedElement as HTMLElement;
 
     if (translatedNode) {
+        // 保留原始容器的class和data属性
+        if (tempContainer.className) {
+            // 保留原有的class，但需要删除loading相关的类
+            const classNames = tempContainer.className.split(' ')
+                .filter(cls => !cls.includes('loading') && cls !== 'comfy-trans-temp-container')
+                .join(' ');
+
+            if (classNames) {
+                translatedNode.className = classNames;
+            }
+        }
+
+        // 复制所有dataset属性
+        for (const key in tempContainer.dataset) {
+            if (Object.prototype.hasOwnProperty.call(tempContainer.dataset, key)) {
+                translatedNode.dataset[key] = tempContainer.dataset[key] || '';
+            }
+        }
+
         // 直接使用AI返回的结果，不添加额外的类名和样式
         // 替换临时容器
         tempContainer.replaceWith(translatedNode);
@@ -405,54 +436,61 @@ export function replaceWithTranslatedNode(translatedHTML: string, tempContainer:
 export function addUnderlineWithPopup(paragraphNode: Element, selectedText: string, popupId: string): HTMLSpanElement | null {
     // 获取段落文本内容
     const paragraphText = paragraphNode.textContent || '';
-    
+
     // 如果段落不包含选中文本，则返回
     if (!paragraphText.includes(selectedText)) {
         console.error('段落中未找到选中文本:', selectedText);
         return null;
     }
-    
+
     // 创建带下划线的span
     const span = document.createElement('span');
     span.style.textDecoration = 'underline';
     span.style.cursor = 'pointer';
     span.style.position = 'relative';
     span.textContent = selectedText;
-    
+
     // 设置popup id到dataset
     span.dataset.popup = popupId;
-    
+
+    // 继承目标节点的部分样式属性
+    const computedStyle = window.getComputedStyle(paragraphNode);
+    span.style.fontFamily = computedStyle.fontFamily;
+    span.style.fontSize = computedStyle.fontSize;
+    span.style.fontWeight = computedStyle.fontWeight;
+    span.style.color = computedStyle.color;
+
     // 添加鼠标悬停事件
     span.addEventListener('mouseenter', handlePopupDisplay);
-    
+
     // 添加点击事件，防止点击下划线文本时关闭Popup
     span.addEventListener('click', handlePopupDisplay);
-    
+
     // 使用TreeWalker遍历段落中的文本节点，查找选中文本
     const walker = document.createTreeWalker(
         paragraphNode,
         NodeFilter.SHOW_TEXT,
         null
     );
-    
+
     let currentNode;
     let found = false;
-    
+
     while (currentNode = walker.nextNode()) {
         const nodeText = currentNode.textContent || '';
         const index = nodeText.indexOf(selectedText);
-        
+
         if (index !== -1) {
             // 找到了包含选中文本的节点
             const beforeText = nodeText.substring(0, index);
             const afterText = nodeText.substring(index + selectedText.length);
-            
+
             // 替换原始文本节点
             const fragment = document.createDocumentFragment();
             fragment.appendChild(document.createTextNode(beforeText));
             fragment.appendChild(span);
             fragment.appendChild(document.createTextNode(afterText));
-            
+
             if (currentNode.parentNode) {
                 currentNode.parentNode.replaceChild(fragment, currentNode);
                 found = true;
@@ -460,12 +498,12 @@ export function addUnderlineWithPopup(paragraphNode: Element, selectedText: stri
             }
         }
     }
-    
+
     if (!found) {
         console.error('无法在DOM树中找到文本节点');
         return null;
     }
-    
+
     return span;
 }
 
@@ -596,7 +634,7 @@ export function findInsertPosition(startContainer: Node): Node {
 }
 
 // 插入翻译段落
-export function insertTranslatedParagraph(translatedParagraph: HTMLParagraphElement, insertPosition: InsertPosition | {node: Element, position: string}) {
+export function insertTranslatedParagraph(translatedParagraph: HTMLParagraphElement, insertPosition: InsertPosition | { node: Element, position: string }) {
     // 处理特殊的"append"位置，表示添加到元素内部尾部
     if ('position' in insertPosition && insertPosition.position === 'append') {
         // 将翻译添加到元素的内部尾部
@@ -694,19 +732,19 @@ export function addUnderlineToSelection(range: Range): HTMLSpanElement {
  * @param targetNode 目标节点
  * @returns 插入位置对象，如果找不到则返回null
  */
-export function findParagraphInsertPosition(targetNode: Element): InsertPosition | {node: Element, position: string} | null {
+export function findParagraphInsertPosition(targetNode: Element): InsertPosition | { node: Element, position: string } | null {
     // 检查是否是Reddit网站且目标节点是h1标签
     const isReddit = window.location.hostname.includes('reddit.com');
     const isH1Tag = targetNode.tagName.toLowerCase() === 'h1';
-    
+
     // 对于Reddit的h1标签，将插入位置设置为h1内部的尾部
     if (isReddit && isH1Tag) {
-        return { 
-            node: targetNode, 
+        return {
+            node: targetNode,
             position: 'append' // 标记为append，表示要添加到内部尾部
         };
     }
-    
+
     // 其他情况使用原来的逻辑
     const insertAfterNode = findInsertPosition(targetNode);
 
@@ -725,12 +763,27 @@ export function findParagraphInsertPosition(targetNode: Element): InsertPosition
 
 /**
  * 2. 创建临时容器
+ * @param targetNode 目标节点，用于获取class和id属性
  * @returns 创建的临时容器元素
  */
-export function createTempContainer(): HTMLDivElement {
+export function createTempContainer(targetNode?: Element): HTMLDivElement {
     const tempContainer = document.createElement('div');
     tempContainer.className = 'comfy-trans-temp-container';
     tempContainer.innerHTML = '<div class="comfy-trans-loading">正在翻译...</div>';
+
+    // 如果提供了目标节点，复制其class和id属性
+    if (targetNode) {
+        // 获取目标节点的class并追加
+        if (targetNode.className) {
+            tempContainer.className += ' ' + targetNode.className;
+        }
+
+        // 获取目标节点的id并设置到dataset中，避免id冲突
+        if (targetNode.id) {
+            tempContainer.dataset.originalNodeId = targetNode.id;
+        }
+    }
+
     return tempContainer;
 }
 
@@ -739,7 +792,7 @@ export function createTempContainer(): HTMLDivElement {
  * @param tempContainer 临时容器元素
  * @param insertPosition 插入位置
  */
-export function insertTempContainer(tempContainer: HTMLDivElement, insertPosition: InsertPosition | {node: Element, position: string}): void {
+export function insertTempContainer(tempContainer: HTMLDivElement, insertPosition: InsertPosition | { node: Element, position: string }): void {
     insertTranslatedParagraph(tempContainer, insertPosition);
 }
 
@@ -772,38 +825,27 @@ export function removeYoutubeTranslateButton() {
  * @param selection 当前选区
  * @returns 段落DOM元素
  */
-export function getParagraphNode(selection: Selection): Element | null {
+export function getParagraphNode(selection: Selection | null): Element | null {
     // 尝试获取鼠标当前位置
     let mouseX = 0;
     let mouseY = 0;
-    let hasValidCoordinates = false;
+    // let hasValidCoordinates = false;
 
-    // 如果有window.event且是MouseEvent类型
-    if (window.event && window.event instanceof MouseEvent) {
-        const evt = window.event as MouseEvent;
-        // 检查坐标是否为有效的有限数值
-        if (Number.isFinite(evt.clientX) && Number.isFinite(evt.clientY)) {
-            mouseX = evt.clientX;
-            mouseY = evt.clientY;
-            hasValidCoordinates = true;
-        }
-    }
+    // // 如果有window.event且是MouseEvent类型
+    // if (window.event && window.event instanceof MouseEvent) {
+    //     const evt = window.event as MouseEvent;
+    //     // 检查坐标是否为有效的有限数值
+    //     if (Number.isFinite(evt.clientX) && Number.isFinite(evt.clientY)) {
+    //         mouseX = evt.clientX;
+    //         mouseY = evt.clientY;
+    //         hasValidCoordinates = true;
+    //     }
+    // }
 
     // 如果没有有效的鼠标事件坐标，则尝试从选区获取
-    if (!hasValidCoordinates && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        
-        // 确保获取到的坐标是有效数值
-        if (Number.isFinite(rect.left) && Number.isFinite(rect.top)) {
-            mouseX = rect.left;
-            mouseY = rect.top;
-            hasValidCoordinates = true;
-        }
-    }
-    
-    // 如果没有有效坐标，回退到传统方法获取元素
-    if (!hasValidCoordinates) {
+    if (selection) {
+        // const range = selection.getRangeAt(0);
+        // const rect = range.getBoundingClientRect();
         if (selection.rangeCount > 0) {
             let node = selection.anchorNode;
             // 确保node是一个元素，而不是文本节点
@@ -814,52 +856,54 @@ export function getParagraphNode(selection: Selection): Element | null {
         }
         return null;
     }
-    
+
+
     // 使用有效坐标获取元素
     const elementAtPoint = document.elementFromPoint(mouseX, mouseY);
+    console.log(elementAtPoint, "elementAtPoint===========")
     if (!elementAtPoint) return null;
-    
+
     // 定义可能的段落标签
     const paragraphTags = ['P', 'DIV', 'LI', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'ARTICLE', 'SECTION'];
-    
+
     // 从当前元素开始向上遍历DOM树，查找合适的段落元素
     let currentElement: Element | null = elementAtPoint;
     let paragraphElement: Element | null = null;
-    
+
     while (currentElement && currentElement !== document.body) {
         // 判断当前元素是否为段落元素
         if (paragraphTags.includes(currentElement.tagName)) {
             // 检查元素是否包含足够的文本内容
             const textContent = currentElement.textContent?.trim() || '';
-            
+
             // 如果文本长度大于30个字符或者是特定的列表项/段落标签，则认为是有效的段落
-            if (textContent.length > 30 || 
+            if (textContent.length > 30 ||
                 ['P', 'LI', 'BLOCKQUOTE'].includes(currentElement.tagName) ||
                 currentElement.classList.contains('paragraph') ||
                 (currentElement.childNodes.length > 1 && textContent.length > 0)) {
-                
+
                 // 避免选择太大的容器如整个article或section
                 const nextParent: Element | null = currentElement.parentElement;
-                if (nextParent && 
+                if (nextParent &&
                     ['ARTICLE', 'SECTION'].includes(currentElement.tagName) &&
                     nextParent.children.length <= 3) {
                     currentElement = nextParent;
                     continue;
                 }
-                
+
                 paragraphElement = currentElement;
                 break;
             }
         }
-        
+
         // 继续向上查找
         currentElement = currentElement.parentElement;
     }
-    
+
     // 如果没有找到合适的段落元素，则返回当前元素的父元素
     if (!paragraphElement && elementAtPoint) {
         paragraphElement = elementAtPoint.parentElement;
     }
-    
+
     return paragraphElement;
 }
