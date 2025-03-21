@@ -17,7 +17,8 @@ import {
     isEntireParagraphSelected,
     showPopup,
     removeYoutubeTranslateButton,
-    getParagraphNode
+    getParagraphNode,
+    shouldTranslateAsFullParagraph
 } from './helpers';
 import { showNotification } from '@/common/notify';
 
@@ -49,6 +50,15 @@ export async function initializeTranslation() {
         // 移除youtube评论区多余的翻译成中文的按钮，避免干扰翻译评论
         removeYoutubeTranslateButton()
 
+        // 添加鼠标移动事件监听器，实时跟踪鼠标位置
+        document.addEventListener('mousemove', (e) => {
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            // 将值也存储在window对象上，以便在helpers.ts中访问
+            (window as any).lastMouseX = e.clientX;
+            (window as any).lastMouseY = e.clientY;
+        });
+
         // 监听键盘事件
         window.addEventListener('keydown', (e) => {
             console.log('检测到键盘事件:', e.key);
@@ -75,10 +85,10 @@ export async function initializeTranslation() {
 function handleTranslation(e: KeyboardEvent) {
     console.log('检测到按键T');
     const selection = window.getSelection();
-    // if (!selection || !selection.toString().trim()) {
-    //     console.log('没有选中文本');
-    //     return;
-    // }
+    if (!selection || !selection.toString().trim()) {
+        console.log('没有选中文本');
+        return;
+    }
     e.preventDefault();
     e.stopPropagation();
     processSelection(selection);
@@ -102,6 +112,10 @@ let currentVisiblePopup: HTMLElement | null = null;
 
 // 跟踪上一次按C键的时间
 let lastCKeyPressTime = 0;
+
+// 添加全局变量跟踪鼠标位置
+let lastMouseX = 0;
+let lastMouseY = 0;
 
 // 将选中文本复制到剪贴板
 async function copyToClipboard(text: string) {
@@ -198,7 +212,7 @@ async function handleHighlight() {
 // 处理选中文本事件
 async function processSelection(selection: Selection | null) {
 
-    const selectedText = selection?.toString()?.trim() || "";
+    let selectedText = selection?.toString()?.trim() || "";
 
     // 使用新的函数获取段落节点
     const paragraphNode = getParagraphNode(selection);
@@ -216,7 +230,7 @@ async function processSelection(selection: Selection | null) {
     // 使用判定函数决定是整段翻译还是部分文本翻译
     if (shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText)) {
         console.log('处理整段翻译');
-        await translateFullParagraph(paragraphNode);
+        await translateFullParagraph(paragraphNode, selectedText ? selectedText : fullParagraphText);
     } else {
         console.log('处理部分文本翻译');
         const range = selection?.getRangeAt(0)!;
@@ -224,31 +238,11 @@ async function processSelection(selection: Selection | null) {
     }
 }
 
-// 判断是否应该按整段翻译的函数
-function shouldTranslateAsFullParagraph(selectedText: string, paragraphNode: Element, fullParagraphText: string): boolean {
-    // 检查是否包含标点符号，如果包含则按整段处理
-    const punctuationRegex = /[.,;!?，。；！？、：""''（）【】《》]/;
-    if (punctuationRegex.test(selectedText)) {
-        console.log('选中文本包含标点符号，按整段处理');
-        return true;
-    }
-
-    // 检查选中文本是否是段落的一部分
-    if (fullParagraphText.includes(selectedText)) {
-        // 是段落文本的一部分，判断是否选中整段
-        return isEntireParagraphSelected(paragraphNode, selectedText);
-    } else {
-        // 选中文本不是段落的一部分，按整段处理
-        console.log('选中文本不是段落的一部分，按整段处理');
-        return true;
-    }
-}
-
 // 处理整个段落的翻译
-async function translateFullParagraph(targetNode: Element) {
+async function translateFullParagraph(targetNode: Element, originalText: string) {
     // 1. 找到插入位置
     const insertPosition = findParagraphInsertPosition(targetNode);
-    
+
     if (!insertPosition) {
         console.error('无法找到有效的插入位置');
         return;
@@ -265,7 +259,7 @@ async function translateFullParagraph(targetNode: Element) {
 
     try {
         // 4. 发送原始HTML到AI并处理结果
-        const originalText = targetNode.textContent || '';
+        // const originalText = targetNode.textContent || '';
         await handlePlainTextTranslation(originalText, tempContainer);
     } catch (error) {
         console.error('翻译过程中出错:', error);

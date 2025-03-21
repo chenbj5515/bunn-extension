@@ -820,45 +820,57 @@ export function removeYoutubeTranslateButton() {
     }
 }
 
+// 判断是否应该按整段翻译的函数
+export function shouldTranslateAsFullParagraph(selectedText: string, paragraphNode: Element, fullParagraphText: string): boolean {
+    // 检查是否包含标点符号，如果包含则按整段处理
+    const punctuationRegex = /[.,;!?，。；！？、：""''（）【】《》]/;
+    if (punctuationRegex.test(selectedText)) {
+        console.log('选中文本包含标点符号，按整段处理');
+        return true;
+    }
+
+    if (!selectedText) return true;
+
+    // 检查选中文本是否是段落的一部分
+    if (fullParagraphText.includes(selectedText)) {
+        // 是段落文本的一部分，判断是否选中整段
+        return isEntireParagraphSelected(paragraphNode, selectedText);
+    } else {
+        // 选中文本不是段落的一部分，按整段处理
+        console.log('选中文本不是段落的一部分，按整段处理');
+        return true;
+    }
+}
+
 /**
  * 根据鼠标位置获取最近的完整段落元素
  * @param selection 当前选区
  * @returns 段落DOM元素
  */
 export function getParagraphNode(selection: Selection | null): Element | null {
-    // 尝试获取鼠标当前位置
-    let mouseX = 0;
-    let mouseY = 0;
-    // let hasValidCoordinates = false;
+    // 使用记录的鼠标位置
+    let mouseX = (window as any).lastMouseX || 0;
+    let mouseY = (window as any).lastMouseY || 0;
 
-    // // 如果有window.event且是MouseEvent类型
-    // if (window.event && window.event instanceof MouseEvent) {
-    //     const evt = window.event as MouseEvent;
-    //     // 检查坐标是否为有效的有限数值
-    //     if (Number.isFinite(evt.clientX) && Number.isFinite(evt.clientY)) {
-    //         mouseX = evt.clientX;
-    //         mouseY = evt.clientY;
-    //         hasValidCoordinates = true;
-    //     }
-    // }
+    console.log(selection, "selection===========")
 
     // 如果没有有效的鼠标事件坐标，则尝试从选区获取
-    if (selection) {
-        // const range = selection.getRangeAt(0);
-        // const rect = range.getBoundingClientRect();
-        if (selection.rangeCount > 0) {
-            let node = selection.anchorNode;
-            // 确保node是一个元素，而不是文本节点
-            while (node && node.nodeType !== 1) {
-                node = node.parentNode;
-            }
-            return node as Element;
-        }
-        return null;
-    }
-
+    // if (selection?.toString()?.trim()) {
+    //     // const range = selection.getRangeAt(0);
+    //     // const rect = range.getBoundingClientRect();
+    //     if (selection.rangeCount > 0) {
+    //         let node = selection.anchorNode;
+    //         // 确保node是一个元素，而不是文本节点
+    //         while (node && node.nodeType !== 1) {
+    //             node = node.parentNode;
+    //         }
+    //         return node as Element;
+    //     }
+    //     return null;
+    // }
 
     // 使用有效坐标获取元素
+    console.log(mouseX, mouseY, "mouseX, mouseY===========")
     const elementAtPoint = document.elementFromPoint(mouseX, mouseY);
     console.log(elementAtPoint, "elementAtPoint===========")
     if (!elementAtPoint) return null;
