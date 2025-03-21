@@ -1,13 +1,13 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../components/ui/dropdown-menu";
 import { fetchApi } from "@/utils/api";
 import { User } from "@/popup/app";
 import { ChevronRight } from "lucide-react";
@@ -26,7 +26,9 @@ export function UserMenu({ user }: UserMenuProps) {
 
   const handleLogout = () => {
     fetchApi("/api/auth/sign-out", {
-      credentials: "include"
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({})
     }).then(() => {
       window.location.reload()
     })
@@ -51,9 +53,9 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none">
-        <Avatar className="w-10 h-10 cursor-pointer">
+        <Avatar className="w-8 h-8 cursor-pointer">
           <AvatarImage src={user.image} />
-          <AvatarFallback>CN</AvatarFallback>
+          <AvatarFallback>Name</AvatarFallback>
         </Avatar>
         <span className="text-sm">{user.name}</span>
       </DropdownMenuTrigger>
