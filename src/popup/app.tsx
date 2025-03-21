@@ -16,8 +16,9 @@ import "../i18n" // 导入i18n配置
 // 定义用户类型
 export interface User {
   user_id: string
+  id: string
   has_subscription: string | null
-  profile: string
+  image: string
   name: string
   email: string
   today_ocr_count: number
@@ -34,13 +35,14 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   // 请求 /api/user/info 接口，获取用户信息
   useEffect(() => {
-    fetchApi("/api/user/info", {
+    fetchApi("/api/auth/get-session", {
       // 带上 cookie 信息
       credentials: "include"
     })
       .then((data) => {
         // 假设接口返回的数据包含 id 和 username 字段
         if (data?.user) {
+          console.log(data.user, "data.user===========")
           setUser(data.user)
         }
         setLoading(false)
@@ -71,7 +73,7 @@ export default function SettingsPage() {
   console.log(user, "user===========")
 
   return (
-    <div className="container mx-auto px-4 py-4 max-w-4xl">
+    <div className="mx-auto px-4 py-4 max-w-4xl container">
       {/* 添加语言切换按钮 */}
       <div className="flex justify-end">
         <LanguageSelector />
@@ -79,7 +81,7 @@ export default function SettingsPage() {
 
       {/* 使用新的UserMenu组件 */}
       {user && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <UserMenu user={user} />
         </div>
       )}
@@ -87,16 +89,16 @@ export default function SettingsPage() {
       {/* 没有获取到用户信息（未登录）时，展示原有的 Sign in 和 Use API Key 选项 */}
       {!user && !hasStoredApiKey && (
         <>
-          <h1 className="text-2xl font-bold mt-[4px] mb-6">{t('loginPage.missingApiKey')}</h1>
-          <div className="text-[16px] text-muted-foreground mb-5">
+          <h1 className="mt-[4px] mb-6 font-bold text-2xl">{t('loginPage.missingApiKey')}</h1>
+          <div className="mb-5 text-[16px] text-muted-foreground">
             {t('loginPage.chooseOption')}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-8 relative">
+          <div className="relative gap-6 grid md:grid-cols-2 mb-8">
             <Card className="relative hover:border-primary transition-colors">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <UserCircle className="h-6 w-6" />
+                  <UserCircle className="w-6 h-6" />
                   <CardTitle className="text-xl">{t('loginPage.signIn.title')}</CardTitle>
                 </div>
                 <CardDescription>
@@ -109,19 +111,19 @@ export default function SettingsPage() {
             </Card>
 
             {/* 垂直 OR 分隔符 */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:block hidden">
-              <div className="bg-background px-4 py-2 rounded-full text-sm border">{t('loginPage.or')}</div>
+            <div className="hidden md:block top-1/2 left-1/2 absolute -translate-x-1/2 -translate-y-1/2">
+              <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
             </div>
 
             {/* 移动端水平 OR 分隔符 */}
-            <div className="md:hidden flex items-center justify-center">
-              <div className="bg-background px-4 py-2 rounded-full text-sm border">{t('loginPage.or')}</div>
+            <div className="md:hidden flex justify-center items-center">
+              <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
             </div>
 
             <Card className="relative hover:border-primary transition-colors">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Key className="h-6 w-6" />
+                  <Key className="w-6 h-6" />
                   <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
                 </div>
                 <CardDescription>
@@ -149,7 +151,7 @@ export default function SettingsPage() {
                   <Card className="mt-8">
                     <CardHeader>
                       <div className="flex items-center gap-2">
-                        <Key className="h-6 w-6" />
+                        <Key className="w-6 h-6" />
                         <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
                       </div>
                       <CardDescription>
@@ -167,18 +169,18 @@ export default function SettingsPage() {
                 </>
               ) : (
                 // 原有的免费用户视图（已登录但未设置API KEY）
-                <div className="grid md:grid-cols-2 gap-6 mb-8 relative">
+                <div className="relative gap-6 grid md:grid-cols-2 mb-8">
                   <SubscriptionPrompt />
 
                   {/* 移动端水平 OR 分隔符 */}
-                  <div className="md:hidden flex items-center justify-center">
-                    <div className="bg-background px-4 py-2 rounded-full text-sm border">{t('loginPage.or')}</div>
+                  <div className="md:hidden flex justify-center items-center">
+                    <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
                   </div>
 
                   <Card className="relative hover:border-primary transition-colors">
                     <CardHeader>
                       <div className="flex items-center gap-2">
-                        <Key className="h-6 w-6" />
+                        <Key className="w-6 h-6" />
                         <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
                       </div>
                       <CardDescription>
@@ -204,7 +206,7 @@ export default function SettingsPage() {
           <Card className="mt-8">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Key className="h-6 w-6" />
+                <Key className="w-6 h-6" />
                 <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
               </div>
               <CardDescription>
@@ -216,10 +218,10 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-[28px] relative transition-colors">
+          <Card className="relative mt-[28px] transition-colors">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <UserCircle className="h-6 w-6" />
+                <UserCircle className="w-6 h-6" />
                 <CardTitle className="text-xl">{t('loginPage.signIn.title')}</CardTitle>
               </div>
               <CardDescription>

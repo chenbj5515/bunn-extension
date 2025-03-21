@@ -25,7 +25,7 @@ export function UserMenu({ user }: UserMenuProps) {
   };
 
   const handleLogout = () => {
-    fetchApi("/api/user/logout", {
+    fetchApi("/api/auth/sign-out", {
       credentials: "include"
     }).then(() => {
       window.location.reload()
@@ -50,15 +50,15 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3">
-        <Avatar className="cursor-pointer h-10 w-10">
-          <AvatarImage src={`https://bunn.ink${user.profile}`} />
+      <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none">
+        <Avatar className="w-10 h-10 cursor-pointer">
+          <AvatarImage src={user.image} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <span className="text-sm">{user.name}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[260px]">
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-default py-2">
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="py-2 cursor-default">
           <span className="text-sm">{user.email}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleManageSubscription} className="flex justify-between items-center py-2">
@@ -69,8 +69,8 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuItem>
         
         {user.has_subscription && (
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-default py-2">
-            <span className="text-sm flex justify-between w-full">
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="py-2 cursor-default">
+            <span className="flex justify-between w-full text-sm">
               <span>有效期限</span>
               <span>{formatExpiryDate(user.exp)}</span>
             </span>
@@ -79,14 +79,14 @@ export function UserMenu({ user }: UserMenuProps) {
 
         {!user.has_subscription && (
           <>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-default py-2">
-              <span className="text-sm flex justify-between w-full">
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="py-2 cursor-default">
+              <span className="flex justify-between w-full text-sm">
                 <span>剩余字幕提取次数：</span>
                 <span>{10 - (user.today_ocr_count || 0)}</span>
               </span>
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-default py-2">
-              <span className="text-sm flex justify-between w-full">
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="py-2 cursor-default">
+              <span className="flex justify-between w-full text-sm">
                 <span>剩余文本翻译次数：</span>
                 <span>{20 - (user.today_translation_count || 0)}</span>
               </span>
@@ -97,9 +97,9 @@ export function UserMenu({ user }: UserMenuProps) {
         {user.has_subscription && (
           <>
             <DropdownMenuItem onClick={handleManageSubscription} className="py-2">
-              <span className="text-sm flex justify-between items-center w-full">
+              <span className="flex justify-between items-center w-full text-sm">
                 <span>订阅管理</span>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="w-4 h-4" />
               </span>
             </DropdownMenuItem>
           </>

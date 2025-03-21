@@ -16,20 +16,16 @@ export default function AuthForm() {
     try {
       setIsGithubLoading(true)
 
-      // 获取 CSRF token
-      const { csrf_token } = await fetchApi("/auth/csrf-token", {
-        credentials: "include"
-      })
-
       // 请求 GitHub 登录链接
-      const data = await fetchApi("/auth/github/login", {
+      const data = await fetchApi("/api/auth/sign-in/social", {
         credentials: "include",
-        headers: {
-          'X-CSRF-Token': csrf_token
-        }
+        method: "POST",
+        body: JSON.stringify({
+          provider: "github",
+          callbackURL: "/",
+        })
       })
-
-      window.open(data.authUrl, "_blank")
+      window.open(data.url, "_blank")
     } catch (error) {
       console.error("GitHub 登录错误：", error)
     } finally {
@@ -40,19 +36,17 @@ export default function AuthForm() {
   async function onGoogleSignIn() {
     try {
       setIsGoogleLoading(true)
-      // 获取 CSRF token
-      const { csrf_token } = await fetchApi("/auth/csrf-token", {
-        credentials: "include"
-      })
 
       // 请求 Google 登录链接
-      const data = await fetchApi("/auth/google/login", {
+      const data = await fetchApi("/api/auth/sign-in/social", {
         credentials: "include",
-        headers: {
-          'X-CSRF-Token': csrf_token
-        }
+        method: "POST",
+        body: JSON.stringify({
+          provider: "google",
+          callbackURL: "/",
+        }),
       })
-      window.open(data.authUrl, "_blank")
+      window.open(data.url, "_blank")
     } catch (error) {
       console.error("Google 登录错误：", error)
     } finally {
@@ -61,18 +55,18 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="gap-4 grid">
       <Button variant="outline" type="button" disabled={isGithubLoading} className="w-full" onClick={onGitHubSignIn}>
         {isGithubLoading ? (
-          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          <Icons.spinner className="mr-2 w-4 h-4 animate-spin" />
         ) : (
-          <Icons.github className="mr-2 h-4 w-4" />
+          <Icons.github className="mr-2 w-4 h-4" />
         )}
         {t('auth.signInWithGithub')}
       </Button>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="border-t w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">{t('auth.or')}</span>
@@ -80,9 +74,9 @@ export default function AuthForm() {
       </div>
       <Button variant="outline" type="button" disabled={isGoogleLoading} className="w-full" onClick={onGoogleSignIn}>
         {isGoogleLoading ? (
-          <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          <Icons.spinner className="mr-2 w-4 h-4 animate-spin" />
         ) : (
-          <Icons.google className="mr-2 h-4 w-4" />
+          <Icons.google className="mr-2 w-4 h-4" />
         )}
         {t('auth.signInWithGoogle')}
       </Button>
