@@ -271,7 +271,11 @@ async function translateFullParagraph(targetNode: Element, originalText: string)
 async function translatePartialText(selectedText: string, range: Range, fullParagraphText: string, paragraphNode: Element) {
     // 使用AI修正选中内容，确保是完整的短语
     try {
-        const correctedText = await askAI(`在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。`);
+        const correctedText = await askAI(`
+            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，你先判断「${selectedText}」是否是一个完整单词，如果是，直接返回这个「${selectedText}」。
+            如果不是，你判断「${selectedText}」是否是一个完整的短语，如果是那么那么直接返回「${selectedText}」。
+            如果不是，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。
+        `);
 
         // 如果AI返回了有效的修正文本，则使用修正后的文本
         if (correctedText && correctedText.trim()) {
@@ -316,10 +320,11 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
 
         // 6. 发起翻译请求并处理结果
         const translationPromise = askAI(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
-        handleTranslationUpdate(translationDiv, originalText, selectedText, translationPromise);
+        const translation = await translationPromise;
+        handleTranslationUpdate(translationDiv, originalText, selectedText, translation);
 
         // 7. 获取解释并流式更新
-        handleExplanationStream(explanationDiv, popup, selectedText, await translationPromise);
+        handleExplanationStream(explanationDiv, popup, selectedText, fullParagraphText);
 
         // 8. 为选中文本添加下划线并创建带有悬浮提示的span
         const underlineSpan = addUnderlineWithPopup(paragraphNode, selectedText, popupId);

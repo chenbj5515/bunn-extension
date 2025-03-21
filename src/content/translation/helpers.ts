@@ -138,10 +138,10 @@ export async function handleTranslationUpdate(
     translationDiv: HTMLDivElement,
     originalText: HTMLSpanElement,
     selectedText: string,
-    translationPromise: Promise<string>
+    translation: string
 ): Promise<void> {
     translationDiv.textContent = '正在翻译...';
-    const translation = await translationPromise;
+    // const translation = await translationPromise;
     translationDiv.textContent = translation;
 
     // 检查是否为日语文本
@@ -158,14 +158,17 @@ export async function handleExplanationStream(
     explanationDiv: HTMLDivElement,
     popup: HTMLElement,
     selectedText: string,
-    translation: string
+    fullParagraphText: string
 ): Promise<void> {
     explanationDiv.innerHTML = '正在分析...';
     let explanation = '';
     let chunkCount = 0;
 
     await askAIStream(
-        `「${selectedText}」这个单词/短语的含义是什么？简洁明了地分析它。如果这个词的词源可考的话也要说明出来。`,
+        `「${selectedText}」这个单词/短语的在「${fullParagraphText}」这个句子中的含义是什么？用一句话简要地说明白。
+        另外，如果这个单词或短语还有和这个上下文中不同的其他的常用含义，也简单地一句话列举出来。
+        最后，判断「${selectedText}」是否是一个日语外来词，是的话用一句话简明地补充下它的来源，不是的话什么也不需要补充，也不需要告诉我这不是日语外来词。除了我要求以外的内容，不要输出任何多余的内容。
+        `,
         'gpt-4o',
         (chunk) => {
             if (explanationDiv && chunk) {
@@ -177,7 +180,7 @@ export async function handleExplanationStream(
                 chunkCount++;
                 if (chunkCount % 10 === 0 || explanation.length % 50 === 0) {
                     // 计算总字符数
-                    const totalChars = selectedText.length + translation.length + explanation.length;
+                    const totalChars = explanation.length;
 
                     // 计算宽度
                     const width = calculateWidthFromCharCount(totalChars);
