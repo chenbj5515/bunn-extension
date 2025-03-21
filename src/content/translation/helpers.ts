@@ -165,9 +165,15 @@ export async function handleExplanationStream(
     let chunkCount = 0;
 
     await askAIStream(
-        `「${selectedText}」这个单词/短语的在「${fullParagraphText}」这个句子中的含义是什么？用一句话简要地说明白。
-        另外，如果这个单词或短语还有和这个上下文中不同的其他的常用含义，也简单地一句话列举出来。
-        最后，判断「${selectedText}」是否是一个日语外来词，是的话用一句话简明地补充下它的来源，不是的话什么也不需要补充，也不需要告诉我这不是日语外来词。除了我要求以外的内容，不要输出任何多余的内容。
+        `请严格按照以下格式回答，格式必须一致，不要添加任何多余内容：
+
+        1. 「${fullParagraphText}」这个句子里「${selectedText}」是什么意思？用一句话简要说明。如果是一个术语的话，那么稍微补充下相关知识，要求简单易懂不要太长。
+
+        2. 如果「${selectedText}」还有其他与该上下文不同的常见含义，请用一句话列出。不需要写“其他含义”这几个字，直接写内容。如果没有，请省略这一项，不要输出这个条目。
+
+        3. 如果「${selectedText}」是日语外来词，请说明其来源；如果不是，请省略这一项，不要输出这个条目。
+
+        输出时请只保留需要的条目，条目前务必不要带编号“1.”、“2.”、“3.”，也不要添加其他说明或总结语句。
         `,
         'gpt-4o',
         (chunk) => {
@@ -855,26 +861,10 @@ export function getParagraphNode(selection: Selection | null): Element | null {
     let mouseX = (window as any).lastMouseX || 0;
     let mouseY = (window as any).lastMouseY || 0;
 
-    console.log(selection, "selection===========")
-
-    // 如果没有有效的鼠标事件坐标，则尝试从选区获取
-    // if (selection?.toString()?.trim()) {
-    //     // const range = selection.getRangeAt(0);
-    //     // const rect = range.getBoundingClientRect();
-    //     if (selection.rangeCount > 0) {
-    //         let node = selection.anchorNode;
-    //         // 确保node是一个元素，而不是文本节点
-    //         while (node && node.nodeType !== 1) {
-    //             node = node.parentNode;
-    //         }
-    //         return node as Element;
-    //     }
-    //     return null;
-    // }
-
     // 使用有效坐标获取元素
     console.log(mouseX, mouseY, "mouseX, mouseY===========")
-    const elementAtPoint = document.elementFromPoint(mouseX, mouseY);
+    // const elementAtPoint = document.elementFromPoint(mouseX, mouseY);
+    const elementAtPoint = selection?.anchorNode as Element;
     console.log(elementAtPoint, "elementAtPoint===========")
     if (!elementAtPoint) return null;
 
