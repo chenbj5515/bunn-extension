@@ -1,7 +1,8 @@
 import { askAI } from '@/common/api';
+import { API_BASE_URL } from '@/utils/api';
 import { initializeStyles } from "./styles";
 import {
-    getTranslatedHTML,
+    // getTranslatedHTML,
     createTranslationDiv,
     createExplanationDiv,
     createOriginalDiv,
@@ -278,8 +279,21 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
             console.log(`AI修正文本: 原文"${selectedText}" -> 修正后"${correctedText}"`);
             selectedText = correctedText.trim();
         }
-    } catch (error) {
-        console.error('AI修正文本失败:', error);
+    } catch (error: any) {
+        console.error('AI修正文本失败:', error instanceof Error ? error.message : String(error));
+        
+        // 检查是否是API错误，特别是token限制
+        if (error && typeof error === 'object' && 'errorCode' in error) {
+            // 显示错误通知
+            showNotification(`翻译失败: ${String(error.message || '未知错误')}`, 'error');
+            
+            // 如果是token限制，给出特定提示
+            if (error.errorCode === 3001) {
+                showNotification(`今日使用的token已达上限，<a href="${API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
+            }
+            return; // 终止翻译流程
+        }
+        
         // 修正失败时继续使用原始选中文本
     }
 
@@ -287,7 +301,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
     const rect = range.getBoundingClientRect();
     // 在选中文本右侧偏下一点显示
     const x = rect.right + 5; // 右侧偏移5px
-    const y = rect.top + rect.height / 2; // 垂直居中偏下
+    const y = rect.top + rect.height / 2;
 
     try {
         const popupId = `comfy-trans-popup-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -327,8 +341,8 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
         if (!underlineSpan) {
             console.warn('无法为选中文本添加下划线，可能是文本在DOM中未找到');
         }
-    } catch (error) {
-        console.error('翻译过程中出错:', error);
-        alert('翻译失败，请查看控制台获取详细错误信息');
+    } catch (error: any) {
+        console.error('翻译过程中出错:', error instanceof Error ? error.message : String(error));
+        // alert('翻译失败，请查看控制台获取详细错误信息');
     }
 }

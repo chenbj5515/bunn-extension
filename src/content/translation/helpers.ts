@@ -4,34 +4,34 @@ import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/u
 import { InsertPosition } from "@/common/types";
 
 
-/**
- * 获取翻译后的HTML
- * @param originalHTML 原始HTML
- * @returns 翻译后的HTML
- */
-export async function getTranslatedHTML(originalHTML: string): Promise<string> {
-    const result = await askAI(
-        `
-        我会给你一个HTML标签及其内容，请将其中的文本内容翻译成中文，但保持HTML结构和属性不变。
-        原始HTML:
-        ${originalHTML}
-        请返回完整的HTML标签，只将文本内容替换为中文翻译。不要添加任何解释或前缀，直接返回翻译后的HTML。
-        `,
-        'gpt-4o',
-    );
+// /**
+//  * 获取翻译后的HTML
+//  * @param originalHTML 原始HTML
+//  * @returns 翻译后的HTML
+//  */
+// export async function getTranslatedHTML(originalHTML: string): Promise<string> {
+//     const result = await askAI(
+//         `
+//         我会给你一个HTML标签及其内容，请将其中的文本内容翻译成中文，但保持HTML结构和属性不变。
+//         原始HTML:
+//         ${originalHTML}
+//         请返回完整的HTML标签，只将文本内容替换为中文翻译。不要添加任何解释或前缀，直接返回翻译后的HTML。
+//         `,
+//         'gpt-4o',
+//     );
 
-    // 清理可能的前缀和后缀文本
-    let translatedHTML = result.trim();
+//     // 清理可能的前缀和后缀文本
+//     let translatedHTML = result.trim();
 
-    // 如果AI返回了带有代码块的回答，提取代码块内容
-    if (translatedHTML.includes('```html')) {
-        translatedHTML = translatedHTML.split('```html')[1].split('```')[0].trim();
-    } else if (translatedHTML.includes('```')) {
-        translatedHTML = translatedHTML.split('```')[1].split('```')[0].trim();
-    }
+//     // 如果AI返回了带有代码块的回答，提取代码块内容
+//     if (translatedHTML.includes('```html')) {
+//         translatedHTML = translatedHTML.split('```html')[1].split('```')[0].trim();
+//     } else if (translatedHTML.includes('```')) {
+//         translatedHTML = translatedHTML.split('```')[1].split('```')[0].trim();
+//     }
 
-    return translatedHTML;
-}
+//     return translatedHTML;
+// }
 
 /**
  * 根据字符数计算适当的宽度，以保持宽高比接近368:500
@@ -167,13 +167,13 @@ export async function handleExplanationStream(
     await askAIStream(
         `请严格按照以下格式回答，格式必须一致，不要添加任何多余内容：
 
-        1. 「${fullParagraphText}」这个句子里「${selectedText}」是什么意思？用一句话简要说明。如果是一个术语的话，那么稍微补充下相关知识，要求简单易懂不要太长。
+        1. 「${fullParagraphText}」这个句子里「${selectedText}」是什么意思？用中文一句话简要说明。如果是一个术语的话，那么稍微补充下相关知识，要求简单易懂不要太长。
 
-        2. 如果「${selectedText}」还有其他与该上下文不同的常见含义，请用一句话列出。不需要写“其他含义”这几个字，直接写内容。如果没有，请省略这一项，不要输出这个条目。
+        2. 如果「${selectedText}」还有其他与该上下文不同的常见含义，请用一句话列出。不需要写"其他含义"这几个字，直接写内容。如果没有，请省略这一项，不要输出这个条目。
 
         3. 如果「${selectedText}」是日语外来词，请说明其来源；如果不是，请省略这一项，不要输出这个条目。
 
-        输出时请只保留需要的条目，条目前务必不要带编号“1.”、“2.”、“3.”，也不要添加其他说明或总结语句。
+        输出时请只保留需要的条目，条目前务必不要带编号"1."、"2."、"3."，也不要添加其他说明或总结语句。输出时检查是否是用的中文，不是的话要用中文。
         `,
         'gpt-4o',
         (chunk) => {
@@ -199,6 +199,19 @@ export async function handleExplanationStream(
         },
         (fullText) => {
             // 流式响应完成后的处理
+        },
+        (error) => {
+            // 错误处理
+            if (explanationDiv) {
+                // 检查是否是API错误
+                if (error && typeof error === 'object' && 'errorCode' in error) {
+                    // 特定API错误处理
+                    explanationDiv.innerHTML = `<div class="comfy-trans-error">❌ ${error.message}</div>`;
+                } else {
+                    // 一般错误处理
+                    explanationDiv.innerHTML = '<div class="comfy-trans-error">❌ 分析失败，请稍后重试</div>';
+                }
+            }
         }
     );
 
@@ -253,6 +266,25 @@ export async function handlePlainTextTranslation(
         (fullText) => {
             // 翻译完成后的处理
             console.log('翻译完成:', fullText);
+        },
+        (error) => {
+            // 错误处理
+            const currentElement = document.getElementById(uniqueId);
+            if (currentElement) {
+                // 检查是否是API错误
+                if (error && typeof error === 'object' && 'errorCode' in error) {
+                    // 特定API错误处理，比如token限制
+                    currentElement.innerHTML = `<div class="comfy-trans-error">❌ 翻译失败: ${error.message}</div>`;
+                    
+                    // 如果是token限制，可以添加特别的提示
+                    if (error.errorCode === 3001) {
+                        currentElement.innerHTML += `<div class="comfy-trans-error-hint">您今日的翻译次数已达上限，请明天再来。</div>`;
+                    }
+                } else {
+                    // 一般错误处理
+                    currentElement.innerHTML = '<div class="comfy-trans-error">❌ 翻译失败，请稍后重试</div>';
+                }
+            }
         }
     );
 }

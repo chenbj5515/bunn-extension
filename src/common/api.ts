@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { APIError } from '../utils/api';
 
 // 获取API Key的方法
 export const getApiKey = async (): Promise<string | null> => {
@@ -36,14 +37,25 @@ export const askAI = async (
         payload: { prompt, model }
       });
 
+      // 检查是否存在错误信息
       if (response.error) {
-        throw new Error(response.error);
+        // 如果是API返回的格式化错误
+        if (response.errorCode) {
+          throw new APIError(response.error, response.errorCode);
+        } else {
+          throw new Error(response.error);
+        }
       }
 
       return response.result.data;
     }
   } catch (error) {
-    console.error('调用AI API失败:', error);
+    // 原样抛出APIError，保留错误类型
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    // 其他错误直接抛出
     throw error;
   }
 };
@@ -53,7 +65,8 @@ export const askAIStream = async (
   prompt: string,
   model: string = 'gpt-4o',
   onChunk: (chunk: string) => void = () => { },
-  onComplete: (fullText: string) => void = () => { }
+  onComplete: (fullText: string) => void = () => { },
+  onError: (error: Error) => void = () => { }
 ): Promise<void> => {
   try {
     // 尝试获取API Key
@@ -98,6 +111,15 @@ export const askAIStream = async (
           onComplete(message.text);
           // 流处理完成后，移除监听器
           chrome.runtime.onMessage.removeListener(messageHandler);
+        } else if (message.type === 'stream-error') {
+          // 处理流式请求中的错误
+          if (message.errorCode) {
+            onError(new APIError(message.error, message.errorCode));
+          } else {
+            onError(new Error(message.error));
+          }
+          // 错误发生后，移除监听器
+          chrome.runtime.onMessage.removeListener(messageHandler);
         }
       };
       
@@ -106,6 +128,8 @@ export const askAIStream = async (
     }
   } catch (error) {
     console.error('流式调用AI API失败:', error);
+    // 调用错误处理回调
+    onError(error instanceof APIError ? error : new Error(String(error)));
     throw error;
   }
 };

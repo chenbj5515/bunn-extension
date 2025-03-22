@@ -73,6 +73,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         // 处理错误
         eventSource.onerror = (error) => {
+            // 尝试获取错误信息
+            try {
+                // 检查sender.tab是否存在
+                if (!sender.tab || !sender.tab.id) {
+                    console.error('发送错误消息失败: sender.tab 未定义');
+                    eventSource.close();
+                    return;
+                }
+                
+                // 根据错误类型发送不同的消息
+                if (error && typeof error === 'object' && 'data' in error) {
+                    try {
+                        const errorData = JSON.parse(String(error.data));
+                        if (errorData.success === false) {
+                            // 发送格式化的错误消息
+                            chrome.tabs.sendMessage(sender.tab.id, {
+                                type: 'stream-error',
+                                error: errorData.error,
+                                errorCode: errorData.errorCode,
+                                success: false
+                            });
+                        }
+                    } catch (parseError) {
+                        // JSON解析失败，发送一般错误
+                        chrome.tabs.sendMessage(sender.tab.id, {
+                            type: 'stream-error',
+                            error: '流式请求失败'
+                        });
+                    }
+                } else {
+                    // 一般错误情况
+                    chrome.tabs.sendMessage(sender.tab.id, {
+                        type: 'stream-error',
+                        error: '流式请求失败'
+                    });
+                }
+            } catch (sendError) {
+                console.error('发送错误消息失败:', sendError);
+            }
+            
             eventSource.close();
         };
 
@@ -102,8 +142,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 sendResponse({ result: data });
 
             } catch (error) {
-                console.error("调用AI API失败:", error);
-                sendResponse({ error: error instanceof Error ? error.message : String(error) });
+                // 检查是否为APIError类型
+                if (error && typeof error === 'object' && 'success' in error && 'errorCode' in error && 'message' in error) {
+                    // 保留APIError的结构直接传递
+                    sendResponse({ 
+                        error: String(error.message), 
+                        errorCode: error.errorCode,
+                        success: false
+                    });
+                } else {
+                    // 普通错误
+                    sendResponse({ error: error instanceof Error ? error.message : String(error) });
+                }
             }
         })();
 
