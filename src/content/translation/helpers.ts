@@ -2,6 +2,8 @@ import { askAI, askAIStream } from "@/common/api";
 import { speakText } from '@/common/tts';
 import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/utils';
 import { InsertPosition } from "@/common/types";
+import { showNotification } from "@/common/notify";
+import { API_BASE_URL } from "@/utils/api";
 
 
 // /**
@@ -202,15 +204,18 @@ export async function handleExplanationStream(
         },
         (error) => {
             // 错误处理
+            // 检查是否是API错误
+            if (error && typeof error === 'object' && 'errorCode' in error) {
+                // 特定API错误处理
+                showNotification(`分析失败: ${error.message}`, 'error');
+            } else {
+                // 一般错误处理
+                showNotification('分析失败，请稍后重试', 'error');
+            }
+            
+            // 清空解释区域内容
             if (explanationDiv) {
-                // 检查是否是API错误
-                if (error && typeof error === 'object' && 'errorCode' in error) {
-                    // 特定API错误处理
-                    explanationDiv.innerHTML = `<div class="comfy-trans-error">❌ ${error.message}</div>`;
-                } else {
-                    // 一般错误处理
-                    explanationDiv.innerHTML = '<div class="comfy-trans-error">❌ 分析失败，请稍后重试</div>';
-                }
+                explanationDiv.innerHTML = '';
             }
         }
     );
@@ -269,21 +274,24 @@ export async function handlePlainTextTranslation(
         },
         (error) => {
             // 错误处理
+            // 检查是否是API错误
+            if (error && typeof error === 'object' && 'errorCode' in error) {
+                // 特定API错误处理，比如token限制
+                showNotification(`翻译失败: ${error.message}`, 'error');
+                
+                // 如果是token限制，可以添加特别的提示
+                if (error.errorCode === 3001) {
+                    showNotification(`今日使用的token已达上限，<a href="${API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
+                }
+            } else {
+                // 一般错误处理
+                showNotification('翻译失败，请稍后重试', 'error');
+            }
+            
+            // 移除翻译元素，因为翻译失败
             const currentElement = document.getElementById(uniqueId);
             if (currentElement) {
-                // 检查是否是API错误
-                if (error && typeof error === 'object' && 'errorCode' in error) {
-                    // 特定API错误处理，比如token限制
-                    currentElement.innerHTML = `<div class="comfy-trans-error">❌ 翻译失败: ${error.message}</div>`;
-                    
-                    // 如果是token限制，可以添加特别的提示
-                    if (error.errorCode === 3001) {
-                        currentElement.innerHTML += `<div class="comfy-trans-error-hint">您今日的翻译次数已达上限，请明天再来。</div>`;
-                    }
-                } else {
-                    // 一般错误处理
-                    currentElement.innerHTML = '<div class="comfy-trans-error">❌ 翻译失败，请稍后重试</div>';
-                }
+                currentElement.innerHTML = '';
             }
         }
     );
@@ -469,7 +477,8 @@ export function replaceWithTranslatedNode(translatedHTML: string, tempContainer:
         tempContainer.replaceWith(translatedNode);
     } else {
         console.error('无法解析翻译后的HTML');
-        tempContainer.innerHTML = '翻译失败，无法解析翻译后的HTML';
+        showNotification('翻译失败，无法解析翻译后的HTML', 'error');
+        tempContainer.remove(); // 移除临时容器而不是显示错误信息
     }
 }
 
@@ -481,6 +490,7 @@ export function addUnderlineWithPopup(paragraphNode: Element, selectedText: stri
     // 如果段落不包含选中文本，则返回
     if (!paragraphText.includes(selectedText)) {
         console.error('段落中未找到选中文本:', selectedText);
+        showNotification('无法在段落中找到选中文本', 'error');
         return null;
     }
 
@@ -542,6 +552,7 @@ export function addUnderlineWithPopup(paragraphNode: Element, selectedText: stri
 
     if (!found) {
         console.error('无法在DOM树中找到文本节点');
+        showNotification('无法在DOM树中找到文本节点', 'error');
         return null;
     }
 
@@ -624,6 +635,7 @@ export function handlePopupDisplay(e: MouseEvent) {
             }, 0);
         } else {
             console.error('未找到Popup元素，ID:', popupId);
+            showNotification('无法加载译文弹窗', 'error');
         }
     } else {
         console.log('span没有关联的Popup ID');
@@ -790,6 +802,7 @@ export function findParagraphInsertPosition(targetNode: Element): InsertPosition
     const insertAfterNode = findInsertPosition(targetNode);
 
     if (!insertAfterNode || !insertAfterNode.parentNode) {
+        showNotification('无法找到合适的插入位置', 'error');
         return null;
     }
 
@@ -858,6 +871,7 @@ export function removeYoutubeTranslateButton() {
         console.log('已设置移除YouTube评论区翻译按钮的监听器');
     } catch (error) {
         console.error('移除YouTube评论区翻译按钮时出错:', error);
+        showNotification('移除YouTube翻译按钮时出错', 'error');
     }
 }
 

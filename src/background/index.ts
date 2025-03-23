@@ -39,82 +39,96 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ error: "无法确定发送请求的标签页" });
             return true;
         }
-        const params = new URLSearchParams({
-            prompt: message.payload.prompt,
-            model: message.payload.model
-        });
 
-        const eventSource = new EventSource(`${API_BASE_URL}/api/openai/stream?${params}`);
-
+        // 创建 AbortController 实例用于取消请求
+        const controller = new AbortController();
         let fullText = '';
 
-        eventSource.onmessage = (event) => {
+        // 使用原生fetch处理流式响应
+        (async () => {
             try {
-                if (event.data === '[DONE]') {
+                const response = await fetch(`${API_BASE_URL}/api/openai/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: message.payload.prompt,
+                        model: message.payload.model
+                    }),
+                    signal: controller.signal
+                });
+
+                // 处理非200状态码的错误
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.log('错误数据:', errorData);
                     chrome.tabs.sendMessage(tabId, {
-                        type: 'stream-end',
+                        type: 'stream-error',
+                        error: errorData.error || '请求失败',
+                        errorCode: errorData.errorCode,
+                        success: false
                     });
-                    eventSource.close();
                     return;
                 }
 
-                const data = JSON.parse(event.data);
-                if (data.delta) {
-                    fullText += data.delta;
-                    chrome.tabs.sendMessage(tabId, {
-                        type: 'stream-chunk',
-                        text: data.delta
-                    });
+                // 确保响应是可读流
+                if (!response.body) {
+                    throw new Error('响应体不可读');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                // 读取流数据
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        chrome.tabs.sendMessage(tabId, {
+                            type: 'stream-end',
+                        });
+                        break;
+                    }
+
+                    // 解码接收到的数据
+                    const chunk = decoder.decode(value, { stream: true });
+                    
+                    // 处理数据块
+                    const lines = chunk.split('\n\n').filter(line => line.trim().startsWith('data: '));
+                    
+                    for (const line of lines) {
+                        const data = line.replace('data: ', '');
+                        
+                        if (data === '[DONE]') {
+                            chrome.tabs.sendMessage(tabId, {
+                                type: 'stream-end',
+                            });
+                            controller.abort();
+                            return;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            if (parsed.delta) {
+                                fullText += parsed.delta;
+                                chrome.tabs.sendMessage(tabId, {
+                                    type: 'stream-chunk',
+                                    text: parsed.delta
+                                });
+                            }
+                        } catch (error) {
+                            console.error('解析消息失败:', error);
+                        }
+                    }
                 }
             } catch (error) {
-                console.error('解析消息失败:', error);
+                console.error('流请求错误:', error);
+                chrome.tabs.sendMessage(tabId, {
+                    type: 'stream-error',
+                    error: error instanceof Error ? error.message : '流式请求失败'
+                });
             }
-        };
-
-        // 处理错误
-        eventSource.onerror = (error) => {
-            // 尝试获取错误信息
-            try {
-                // 检查sender.tab是否存在
-                if (!sender.tab || !sender.tab.id) {
-                    console.error('发送错误消息失败: sender.tab 未定义');
-                    eventSource.close();
-                    return;
-                }
-                
-                // 根据错误类型发送不同的消息
-                if (error && typeof error === 'object' && 'data' in error) {
-                    try {
-                        const errorData = JSON.parse(String(error.data));
-                        if (errorData.success === false) {
-                            // 发送格式化的错误消息
-                            chrome.tabs.sendMessage(sender.tab.id, {
-                                type: 'stream-error',
-                                error: errorData.error,
-                                errorCode: errorData.errorCode,
-                                success: false
-                            });
-                        }
-                    } catch (parseError) {
-                        // JSON解析失败，发送一般错误
-                        chrome.tabs.sendMessage(sender.tab.id, {
-                            type: 'stream-error',
-                            error: '流式请求失败'
-                        });
-                    }
-                } else {
-                    // 一般错误情况
-                    chrome.tabs.sendMessage(sender.tab.id, {
-                        type: 'stream-error',
-                        error: '流式请求失败'
-                    });
-                }
-            } catch (sendError) {
-                console.error('发送错误消息失败:', sendError);
-            }
-            
-            eventSource.close();
-        };
+        })();
 
         // 可以用sendResponse告知已开始处理
         sendResponse({ status: "开始处理" });
