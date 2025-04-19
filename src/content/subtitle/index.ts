@@ -9,7 +9,7 @@ import {
   captureYoutubeSubtitle,
   updateLastCopiedTime
 } from './helpers';
-import { showNotification } from '@/common/notify';
+import { showNotification, updateNotification } from '@/common/notify';
 
 // 业务流程：在Youtube上获取字幕和影子跟读
 // 1 用户打开一个含有内置字幕的Youtube视频（比如：https://www.youtube.com/watch?v=QrwxVi9hWJg&t=374s）
@@ -79,10 +79,12 @@ async function handleCopySubtitle(e: KeyboardEvent) {
 
   if (isNetflix) {
     if (!lastSubtitle.text) {
-      showNotification('No subtitle available to copy');
+      showNotification('no.subtitle.available', 'warning', true);
       console.log('No subtitles to copy.');
       return;
     }
+
+    showNotification('preparing.subtitle.data', 'loading', true);
 
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('t', Math.floor(lastSubtitle.startTime).toString());
@@ -118,12 +120,12 @@ async function handleCopySubtitle(e: KeyboardEvent) {
         episodeTitle
       }))
         .then(() => {
-          showNotification('Subtitle copied successfully!');
+          updateNotification('subtitle.copy.success', 'success', true);
           console.log('Copied Netflix subtitles:', subtitleData);
           updateLastCopiedTime(lastSubtitle.startTime);
         })
         .catch(err => {
-          showNotification('Failed to copy subtitle');
+          updateNotification('subtitle.copy.failed', 'error', true);
           console.error('Failed to copy subtitles:', err);
         });
     }, 1000)
@@ -160,18 +162,18 @@ function handleAdjustVideoTime(e: KeyboardEvent) {
     console.log('lastCopiedTime:', lastCopiedTime);
     if (lastCopiedTime !== null) {
       video.currentTime = lastCopiedTime;
-      showNotification('Video time adjusted to last copied time: ' + lastCopiedTime + ' seconds');
+      showNotification('video.time.adjusted.last', 'info', true, lastCopiedTime);
     } else {
       const currentUrl = new URL(window.location.href);
       const timeParam = currentUrl.searchParams.get('t');
       if (timeParam) {
         video.currentTime = parseFloat(timeParam);
-        showNotification('Video time adjusted to ' + timeParam + ' seconds');
+        showNotification('video.time.adjusted', 'info', true, timeParam);
       } else {
-        showNotification('No time parameter found in URL');
+        showNotification('no.time.parameter', 'warning', true);
       }
     }
   } else {
-    showNotification('Video element not found');
+    showNotification('video.not.found', 'error', true);
   }
 }

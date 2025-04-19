@@ -1,4 +1,4 @@
-import { showNotification } from '@/common/notify';
+import { showNotification, updateNotification } from '@/common/notify';
 
 // 全局变量
 export let lastSubtitle = { text: '', startTime: 0 };
@@ -38,19 +38,32 @@ export function addNotificationStyle() {
         .netflix-subtitle-notification .spinner {
             width: 16px;
             height: 16px;
-            border: 2px solid #ccc;
-            border-top-color: transparent;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top: 2px solid #3498db;
             border-radius: 50%;
-            display: none;
             animation: spin 1s linear infinite;
-        }
-        .netflix-subtitle-notification.loading .spinner {
             display: inline-block;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .netflix-subtitle-notification.error {
+            background-color: #FEE2E2;
+            color: #EF4444;
+            border-left: 4px solid #EF4444;
+        }
+        .netflix-subtitle-notification.warning {
+            background-color: #FEF3C7;
+            color: #F59E0B;
+            border-left: 4px solid #F59E0B;
+        }
+        .netflix-subtitle-notification.success {
+            background-color: #DCFCE7;
+            color: #22C55E;
+            border-left: 4px solid #22C55E;
         }
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     `;
   document.head.appendChild(style);
@@ -171,7 +184,7 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
   console.log('response:', response);
 
   if (response?.error) {
-    showNotification(response.error);
+    showNotification(response.error, 'error');
     throw new Error(response.error);
   }
 
@@ -194,13 +207,13 @@ export function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array | number[])
 // 捕获YouTube字幕
 export async function captureYoutubeSubtitle() {
   if (isRequestInProgress) {
-    showNotification('A request is already in progress');
+    showNotification('processing.request', 'warning', true);
     return;
   }
 
   const video = document.querySelector('.video-stream') as HTMLVideoElement;
   if (!video) {
-    showNotification('Video element not found');
+    showNotification('video.not.found', 'error', true);
     return;
   }
 
@@ -232,8 +245,11 @@ export async function captureYoutubeSubtitle() {
   if (titleElement) {
     const titleAttr = titleElement.getAttribute('title');
     if (titleAttr) {
-      // 移除类似【アニメ】【コント】的括号内容
-      videoTitle = titleAttr.replace(/【[^】]*】/g, '').trim();
+      // 移除类似【アニメ】【コント】的括号内容以及#及其后面的内容
+      videoTitle = titleAttr
+        .replace(/【[^】]*】/g, '')  // 移除【】及其内容
+        .replace(/#.*$/, '')         // 移除#及其后面的内容
+        .trim();
     }
   }
 
@@ -256,52 +272,59 @@ export async function captureYoutubeSubtitle() {
       canvas.toBlob(async (blob) => {
         try {
           isRequestInProgress = true; // 标记请求开始
-          showNotification('Reading current subtitles...', "info");
+          showNotification('recognizing.subtitles', "loading", true);
+          
           if (blob) {
             const arrayBuffer = await blob.arrayBuffer();
             const imageData = Array.from(new Uint8Array(arrayBuffer))  // 转换为普通数组以便传递
-            // const subtitleText = await getImageDataFromBlob(blob);
-            console.log('imageData:', imageData);
-            const subtitleText = await extractSubtitlesFromImage(imageData);
-            console.log('subtitleText:', subtitleText);
-            if (subtitleText) {
-              const currentUrl = new URL(window.location.href);
-              currentUrl.searchParams.set('t', Math.floor(currentTime).toString());
+            
+            try {
+              const subtitleText = await extractSubtitlesFromImage(imageData);
+              
+              if (subtitleText) {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('t', Math.floor(currentTime).toString());
 
-              const subtitleData = {
-                url: currentUrl.toString(),
-                text: subtitleText,
-                channelId: channelId,
-                channelName: channelName,
-                videoTitle: videoTitle,
-                videoId: videoId,
-                avatarUrl: avatarUrl,
-              };
+                const subtitleData = {
+                  url: currentUrl.toString(),
+                  text: subtitleText,
+                  channelId: channelId,
+                  channelName: channelName,
+                  videoTitle: videoTitle,
+                  videoId: videoId,
+                  avatarUrl: avatarUrl,
+                };
 
-              await navigator.clipboard.writeText(JSON.stringify(subtitleData));
-              showNotification('Subtitle data copied to clipboard');
-              lastCopiedTime = currentTime; // 记录上次复制的时间
-            } else {
-              showNotification('Failed to recognize subtitles');
+                await navigator.clipboard.writeText(JSON.stringify(subtitleData));
+                updateNotification('subtitle.copied', 'success', true);
+                setTimeout(() => {
+                  hideNotification(); // 3秒后隐藏通知
+                }, 3000);
+                
+                lastCopiedTime = currentTime; // 记录上次复制的时间
+              } else {
+                updateNotification('subtitle.recognition.failed', 'error', true);
+              }
+            } catch (error) {
+              console.error('字幕提取失败:', error);
+              updateNotification('subtitle.extraction.failed', 'error', true);
             }
           } else {
-            showNotification('Failed to create image blob');
+            updateNotification('image.creation.failed', 'error', true);
           }
         } catch (err) {
-          console.error('Processing failed:', err);
-          showNotification('Processing failed');
+          console.error('处理失败:', err);
+          updateNotification('processing.failed', 'error', true);
         } finally {
           isRequestInProgress = false; // 标记请求结束
-          hideNotification(); // 隐藏通知
         }
       });
     } else {
-      throw new Error('Failed to get canvas context');
+      throw new Error('无法获取Canvas上下文');
     }
   } catch (err) {
-    console.error('Screenshot failed:', err);
-    showNotification('Screenshot failed');
-    hideNotification(); // 隐藏通知
+    console.error('截图失败:', err);
+    showNotification('screenshot.failed', 'error', true);
   }
 }
 
