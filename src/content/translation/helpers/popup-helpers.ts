@@ -1,4 +1,5 @@
 import { speakText } from '@/common/tts';
+import { showNotification } from '@/common/notify'; 
 
 /**
  * 根据字符数计算适当的宽度，以保持宽高比接近368:500
@@ -248,6 +249,3 @@ export function handlePopupDisplay(e: MouseEvent) {
         console.log('span没有关联的Popup ID');
     }
 }
-
-// 导入外部依赖
-import { showNotification } from '@/common/notify'; 

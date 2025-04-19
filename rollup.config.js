@@ -1,26 +1,35 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
+import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
+import json from '@rollup/plugin-json';
+import autoprefixer from 'autoprefixer';
+import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
-import fs from 'fs';
+import tailwindcss from 'tailwindcss';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import alias from '@rollup/plugin-alias';
+import fs from 'fs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // 环境变量处理
-const isProd = process.env.NODE_ENV === 'production';
-const isDev = !isProd;
+const production = process.env.NODE_ENV === 'production';
+const isDev = !production;
 const target = process.env.TARGET; // 可能的值: popup, content, background
 
 // 根据环境变量设置API基础URL
-const apiBaseUrl = isProd
+const apiBaseUrl = production
   ? 'https://bunn.ink'
   : 'http://localhost:3000';
 
 // 从.env文件加载环境变量
 function loadEnv() {
   try {
-    const envFile = fs.readFileSync('.env', 'utf-8');
+    const envFile = fs.readFileSync(path.resolve(__dirname, '.env'), 'utf-8');
     const env = {};
     envFile.split('\n').forEach(line => {
       const [key, value] = line.split('=');
@@ -37,30 +46,46 @@ function loadEnv() {
 
 const env = loadEnv();
 
-// 通用插件配置
+// 共享配置
 const commonPlugins = [
-  resolve({
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    browser: true
+  json(),
+  nodeResolve({
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
+    browser: true,
   }),
   commonjs(),
   typescript({
     tsconfig: './tsconfig.json',
-    sourceMap: isDev
+    sourceMap: !production,
+  }),
+  babel({
+    babelHelpers: 'bundled',
+    presets: [
+      '@babel/preset-env',
+      ['@babel/preset-react', { runtime: 'automatic' }],
+      ['@babel/preset-typescript', { isTSX: true, allExtensions: true }]
+    ],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
   }),
   replace({
     preventAssignment: true,
-    'process.env.NODE_ENV': JSON.stringify(isProd ? 'production' : 'development'),
+    'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development'),
     'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
     'process.env.PUBLIC_SUBSCRIPTION_KEY': JSON.stringify(env.PUBLIC_SUBSCRIPTION_KEY?.replace(/"/g, '') || ''),
     'process.env.PUBLIC_REGION': JSON.stringify(env.PUBLIC_REGION?.replace(/"/g, '') || '')
   }),
   postcss({
-    extensions: ['.css'],
-    minimize: isProd,
-    extract: true
+    config: {
+      path: './postcss.config.mjs',
+    },
+    plugins: [
+      tailwindcss('./tailwind.config.ts'),
+      autoprefixer(),
+    ],
+    extract: path.resolve('dist/popup.css'),
+    minimize: production,
   }),
-  isProd && terser()
+  production && terser(),
 ];
 
 // 在构建开始前准备HTML文件
@@ -68,73 +93,86 @@ function prepareHtml() {
   return {
     name: 'prepare-html',
     buildStart() {
-      // 确保dist目录存在
-      if (!fs.existsSync('dist')) {
-        fs.mkdirSync('dist', { recursive: true });
-      }
-      
-      // 复制HTML文件并修改内容
-      const htmlContent = fs.readFileSync('src/popup/index.html', 'utf-8');
-      const modifiedHtml = htmlContent.replace(
-        '<script type="module" src="./index.tsx"></script>',
-        '<script type="module" src="./popup.js"></script>\n<link rel="stylesheet" href="./popup.css">'
-      );
-      
-      fs.writeFileSync('dist/popup.html', modifiedHtml);
-      
-      // 复制manifest和assets
-      fs.copyFileSync('src/manifest.json', 'dist/manifest.json');
-      
-      // 复制assets目录
-      if (fs.existsSync('src/assets')) {
-        if (!fs.existsSync('dist/assets')) {
-          fs.mkdirSync('dist/assets', { recursive: true });
+      try {
+        console.log('开始准备HTML文件...');
+        // 确保dist目录存在
+        if (!fs.existsSync('dist')) {
+          fs.mkdirSync('dist', { recursive: true });
         }
         
-        const assetFiles = fs.readdirSync('src/assets');
-        assetFiles.forEach(file => {
-          fs.copyFileSync(`src/assets/${file}`, `dist/assets/${file}`);
-        });
+        // 读取原始HTML
+        const htmlContent = fs.readFileSync(path.resolve(__dirname, 'src/popup/index.html'), 'utf-8');
+        
+        // 替换脚本标签
+        const modifiedHtml = htmlContent.replace(
+          '<script type="module" src="./index.tsx"></script>',
+          '<script src="./popup.js"></script>\n  <link rel="stylesheet" href="./popup.css">'
+        );
+        
+        // 写入到dist目录
+        fs.writeFileSync(path.resolve(__dirname, 'dist/popup.html'), modifiedHtml);
+        console.log('HTML文件准备完成');
+      } catch (error) {
+        console.error('准备HTML文件时出错:', error);
       }
     }
   };
 }
 
-// 配置选项
+// 复制静态文件
+const copyPlugin = copy({
+  targets: [
+    { 
+      src: 'src/manifest.json', 
+      dest: 'dist',
+      transform: (contents) => contents.toString().trim() // 移除可能的尾随字符
+    },
+    { src: 'src/assets/**/*', dest: 'dist/assets' },
+  ],
+  verbose: true,
+});
+
+// 配置
 const configs = {
+  // 弹出窗口
   popup: {
     input: 'src/popup/index.tsx',
     output: {
       file: 'dist/popup.js',
-      format: 'es',
-      sourcemap: isDev
+      format: 'iife',
+      sourcemap: !production,
     },
     plugins: [
+      ...commonPlugins,
+      copyPlugin,
       prepareHtml(),
-      ...commonPlugins
-    ]
+    ],
   },
-  
+  // 内容脚本
   content: {
     input: 'src/content/index.ts',
     output: {
       file: 'dist/content.js',
-      format: 'es',
-      sourcemap: isDev
+      format: 'iife',
+      sourcemap: !production,
     },
-    plugins: commonPlugins
+    plugins: [
+      ...commonPlugins,
+    ],
   },
-  
+  // 后台脚本
   background: {
     input: 'src/background/index.ts',
     output: {
       file: 'dist/background.js',
-      format: 'es',
-      sourcemap: isDev
+      format: 'esm',
+      sourcemap: !production,
     },
-    plugins: commonPlugins
-  }
+    plugins: [
+      ...commonPlugins,
+    ],
+  },
 };
 
 // 根据TARGET环境变量决定构建哪些部分
-export default target ? [configs[target]] : Object.values(configs); 
+export default target ? [configs[target]] : Object.values(configs);

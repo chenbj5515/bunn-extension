@@ -1,3 +1,4 @@
+import { generateText } from '@/common/api';
 import {
   lastSubtitle,
   isNetflix,
@@ -43,12 +44,15 @@ export function initializeSubtitleFeatures() {
   window.addEventListener('keydown', handleKeyDown, true);
 }
 
+// 跟踪上一次C键按下的时间
+let lastCKeyPressTime = 0;
+
 /**
  * 处理键盘事件
  */
 async function handleKeyDown(e: KeyboardEvent) {
-  // 处理复制快捷键 (Ctrl+Shift+C / Cmd+Shift+C)
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+  // 处理Ctrl键
+  if ((e.key === 'Alt')) {
     await handleCopySubtitle(e);
   }
   // 处理YouTube上的左右箭头键
@@ -62,9 +66,15 @@ async function handleKeyDown(e: KeyboardEvent) {
 }
 
 /**
- * 处理复制字幕快捷键 (Ctrl+C / Cmd+C)
+ * 处理复制字幕快捷键 (单独的Ctrl/Cmd键)
  */
 async function handleCopySubtitle(e: KeyboardEvent) {
+  const selection = window.getSelection();
+  const hasSelectedText = selection && selection.toString().trim();
+
+  if (hasSelectedText) return;
+
+  // 如果没有选中文本，则触发字幕复制功能
   e.preventDefault();
 
   if (isNetflix) {
@@ -82,16 +92,41 @@ async function handleCopySubtitle(e: KeyboardEvent) {
       text: lastSubtitle.text
     };
 
-    navigator.clipboard.writeText(JSON.stringify(subtitleData))
-      .then(() => {
-        showNotification('Subtitle copied successfully!');
-        console.log('Copied Netflix subtitles:', subtitleData);
-        updateLastCopiedTime(lastSubtitle.startTime);
-      })
-      .catch(err => {
-        showNotification('Failed to copy subtitle');
-        console.error('Failed to copy subtitles:', err);
-      });
+    setTimeout(async () => {
+      const videoTitleElement = document.querySelectorAll('[data-uia="video-title"]')[0];
+
+      let seriesTitle = '';
+      let episodeNumber = '';
+      let episodeTitle = '';
+      let seriesNum = '';
+
+      if (videoTitleElement.children.length > 0) {
+        seriesTitle = videoTitleElement.children[0]?.textContent || '';
+        episodeNumber = videoTitleElement.children[1]?.textContent || '';
+        episodeTitle = videoTitleElement.children[2]?.textContent || '';
+        seriesNum = await generateText(`${seriesTitle}这个动画，${episodeTitle}这集是第几季？只需要回答这个数字，不要回答其他任何内容。`);
+      } else {
+        seriesTitle = videoTitleElement.textContent || '';
+      }
+
+
+      navigator.clipboard.writeText(JSON.stringify({
+        ...subtitleData,
+        seriesTitle,
+        seriesNum,
+        episodeNumber,
+        episodeTitle
+      }))
+        .then(() => {
+          showNotification('Subtitle copied successfully!');
+          console.log('Copied Netflix subtitles:', subtitleData);
+          updateLastCopiedTime(lastSubtitle.startTime);
+        })
+        .catch(err => {
+          showNotification('Failed to copy subtitle');
+          console.error('Failed to copy subtitles:', err);
+        });
+    }, 1000)
   } else if (isYouTube) {
     // YouTube处理
     await captureYoutubeSubtitle();

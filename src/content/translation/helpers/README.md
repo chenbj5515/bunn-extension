@@ -45,7 +45,6 @@
 - `createPlayButton` - 创建播放按钮
 - `createTempContainer` - 创建临时容器
 - `insertTempContainer` - 插入临时容器到 DOM
-- `replaceWithTranslatedNode` - 创建并插入翻译后的节点
 - `insertTranslatedParagraph` - 插入翻译段落
 - `appendLexicalUnit` - 添加含义和音标到翻译中
 

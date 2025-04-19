@@ -1,5 +1,5 @@
 // 添加以下辅助函数
-import { askAI } from './api';
+import { generateText } from './api';
 
 // 共享工具函数
 /**
@@ -94,9 +94,10 @@ export async function addRubyForJapanese(text: string): Promise<string> {
       文本: ${text}
     `;
 
-    const result = await askAI(prompt);
+    const generatedText = await generateText(prompt);
+
     // 清理可能的前缀和后缀文本
-    let cleanResult = result.trim();
+    let cleanResult = generatedText?.trim();
 
     // 如果AI返回了带有代码块的回答，提取代码块内容
     if (cleanResult.includes('```html')) {

@@ -79,6 +79,7 @@ export function createPlayButton(selectedText: string): HTMLSpanElement {
 /**
  * 2. 创建临时容器
  * @param targetNode 目标节点，用于获取class和id属性
+ * @param paragraphNode 原始段落节点，用于获取文字颜色
  * @returns 创建的临时容器元素
  */
 export function createTempContainer(targetNode?: Element): HTMLDivElement {
@@ -96,6 +97,25 @@ export function createTempContainer(targetNode?: Element): HTMLDivElement {
         // 获取目标节点的id并设置到dataset中，避免id冲突
         if (targetNode.id) {
             tempContainer.dataset.originalNodeId = targetNode.id;
+        }
+    }
+
+    // 获取并应用段落节点的文字颜色
+    if (targetNode) {
+        const computedStyle = window.getComputedStyle(targetNode);
+        const textColor = computedStyle.color;
+        const fontSize = computedStyle.fontSize;
+        
+        if (textColor) {
+            console.log(textColor, "textColor");
+            tempContainer.style.color = textColor;
+        }
+        
+        if (fontSize) {
+            console.log(fontSize, "fontSize");
+            // 确保字体大小不小于14px
+            const size = parseInt(fontSize);
+            tempContainer.style.fontSize = `${Math.max(14, size)}px`;
         }
     }
 
@@ -120,49 +140,6 @@ export function insertTranslatedParagraph(translatedParagraph: HTMLParagraphElem
     } else {
         // 使用原来的插入逻辑
         (insertPosition as InsertPosition).parentNode.insertBefore(translatedParagraph, (insertPosition as InsertPosition).nextSibling);
-    }
-}
-
-/**
- * 5. 创建并插入翻译后的节点
- * @param translatedHTML 翻译后的HTML
- * @param tempContainer 临时容器，将被替换
- */
-export function replaceWithTranslatedNode(translatedHTML: string, tempContainer: HTMLDivElement): void {
-    // 创建翻译后的元素
-    const translatedElement = document.createElement('div');
-    translatedElement.innerHTML = translatedHTML;
-
-    // 获取翻译后的节点
-    const translatedNode = translatedElement as HTMLElement;
-
-    if (translatedNode) {
-        // 保留原始容器的class和data属性
-        if (tempContainer.className) {
-            // 保留原有的class，但需要删除loading相关的类
-            const classNames = tempContainer.className.split(' ')
-                .filter(cls => !cls.includes('loading') && cls !== 'comfy-trans-temp-container')
-                .join(' ');
-
-            if (classNames) {
-                translatedNode.className = classNames;
-            }
-        }
-
-        // 复制所有dataset属性
-        for (const key in tempContainer.dataset) {
-            if (Object.prototype.hasOwnProperty.call(tempContainer.dataset, key)) {
-                translatedNode.dataset[key] = tempContainer.dataset[key] || '';
-            }
-        }
-
-        // 直接使用AI返回的结果，不添加额外的类名和样式
-        // 替换临时容器
-        tempContainer.replaceWith(translatedNode);
-    } else {
-        console.error('无法解析翻译后的HTML');
-        showNotification('翻译失败，无法解析翻译后的HTML', 'error');
-        tempContainer.remove(); // 移除临时容器而不是显示错误信息
     }
 }
 

@@ -1,29 +1,48 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Key, UserCircle } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { fetchApi } from "@/utils/api"
+// import { Key, UserCircle } from "lucide-react"
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// // import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "@/components/language-selector"
 import Loading from "@/components/loading"
-import { UserMenu } from "@/popup/user-menu"
-import ApiKeyForm from "./api-key-form"
-import AuthForm from "./auth-form"
+import { UserMenu } from "./user-menu"
+import MissingKey from "./missing-key"
+import SignIn from "./sign-in"
+// import { UserMenu } from "@/popup/user-menu"
+// import SubscriptionPrompt from "./subscription-prompt"
+// 导入i18n配置
+import "@/utils/i18n"
 import UsageGuide from "./usage-guide"
-import SubscriptionPrompt from "./subscription-prompt"
-import "../i18n" // 导入i18n配置
+import ManageApiKey from "./manage-api-key"
+
+// 根据新接口返回格式定义接口
+export interface SessionResponse {
+  success: boolean;
+  data?: {
+    session: {
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        image?: string;
+      }
+    };
+    subscription: {
+      active: boolean;
+      expireAt: string | null;
+    }
+  };
+  message?: string;
+}
 
 // 定义用户类型
 export interface User {
-  user_id: string
-  id: string
-  has_subscription: string | null
-  image: string
-  name: string
-  email: string
-  today_ocr_count: number
-  today_translation_count: number
-  exp: number
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  subscriptionActive: boolean;
+  expireAt: string | null;
 }
 
 export default function SettingsPage() {
@@ -32,34 +51,58 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
+  const [showSignIn, setShowSignIn] = useState(false)  // 新增状态控制是否显示登录页面
   const { t } = useTranslation();
-  // 请求 /api/user/info 接口，获取用户信息
+
+  // 使用client调用新的/users/session接口
   useEffect(() => {
-    fetchApi("/api/auth/get-session", {
-      // 带上 cookie 信息
-      credentials: "include"
+    fetch(`${process.env.API_BASE_URL}/api/user/session`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
-      .then((data) => {
-        // 假设接口返回的数据包含 id 和 username 字段
-        if (data?.user) {
-          console.log(data.user, "data.user===========")
-          setUser(data.user)
+      .then(async (response) => {
+        const responseData = await response.json();
+
+        if (responseData.success && 'data' in responseData) {
+          const data = responseData.data;
+          const { session, subscription } = data;
+
+          const userData: User = {
+            id: session.user.id,
+            name: session.user.name,
+            email: session.user.email,
+            image: session.user.image || undefined,
+            subscriptionActive: subscription.active,
+            expireAt: subscription.expireAt
+          };
+
+          console.log(userData, "user data from session API");
+          setUser(userData);
         }
-        setLoading(false)
+        setLoading(false);
       })
-      .catch((err) => {
-        console.error("获取用户信息失败：", err)
-        setLoading(false)
-      })
-  }, [])
+      .catch((err: unknown) => {
+        console.error("获取用户信息失败：", err);
+        setLoading(false);
+      });
+  }, []);
 
   // 修改检查 chrome storage 的 useEffect
   useEffect(() => {
     chrome.storage.local.get(['openai_api_key'], (result) => {
-      setHasStoredApiKey(!!result.openai_api_key)
       setStoredApiKey(result.openai_api_key || "") // 保存 API key 的值
     })
   }, [])
+
+  function handleSignIn() {
+    setShowSignIn(true);  // 点击登录按钮时，切换到登录页面
+  }
+
+  function handleBack() {
+    setShowSignIn(false);  // 返回主设置页面
+  }
 
   // 点击"订阅引导"时，打开新的 tab 访问订阅引导页（替换下面的 URL）
   // const handleSubscribeGuide = () => {
@@ -70,170 +113,42 @@ export default function SettingsPage() {
     return <Loading />
   }
 
-  console.log(user, "user===========")
-
   return (
-    <div className="mx-auto px-4 py-4 max-w-4xl container">
-      {/* 添加语言切换按钮 */}
-      <div className="flex justify-end">
+    <div className="mx-auto px-4 py-4 w-[360px] max-w-4xl font-mono container">
+      {/* 顶部导航栏：语言选择器在左，用户菜单在右，两者垂直居中 */}
+      <div className="flex justify-between items-center mb-4">
+        {showSignIn ? (
+          <button
+            onClick={handleBack}
+            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition cursor-pointer"
+          >
+            {t('common.back')}
+          </button>
+        ) : user ? (
+          <UserMenu user={user} />
+        ) : (
+          <button
+            onClick={handleSignIn}
+            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] w-[100px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition cursor-pointer"
+          >
+            {t('common.login')}
+          </button>
+        )}
         <LanguageSelector />
       </div>
-
-      {/* 使用新的UserMenu组件 */}
-      {user && (
-        <div className="flex justify-between items-center mb-4">
-          <UserMenu user={user} />
-        </div>
-      )}
-
-      {/* 没有获取到用户信息（未登录）时，展示原有的 Sign in 和 Use API Key 选项 */}
-      {!user && !hasStoredApiKey && (
+      
+      {showSignIn ? (
+        <SignIn />
+      ) : user ? (
+        <UsageGuide />
+      ) : storedApiKey ? (
         <>
-          <h1 className="mt-[4px] mb-6 font-bold text-2xl">{t('loginPage.missingApiKey')}</h1>
-          <div className="mb-5 text-[16px] text-muted-foreground">
-            {t('loginPage.chooseOption')}
-          </div>
-
-          <div className="relative gap-6 grid md:grid-cols-2 mb-8">
-            <Card className="relative hover:border-primary transition-colors">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <UserCircle className="w-6 h-6" />
-                  <CardTitle className="text-xl">{t('loginPage.signIn.title')}</CardTitle>
-                </div>
-                <CardDescription>
-                  {t('loginPage.signIn.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AuthForm />
-              </CardContent>
-            </Card>
-
-            {/* 垂直 OR 分隔符 */}
-            <div className="hidden md:block top-1/2 left-1/2 absolute -translate-x-1/2 -translate-y-1/2">
-              <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
-            </div>
-
-            {/* 移动端水平 OR 分隔符 */}
-            <div className="md:hidden flex justify-center items-center">
-              <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
-            </div>
-
-            <Card className="relative hover:border-primary transition-colors">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Key className="w-6 h-6" />
-                  <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
-                </div>
-                <CardDescription>
-                  {t('loginPage.apiKey.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ApiKeyForm initialApiKey={storedApiKey} onSaved={() => window.location.reload()} />
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
-
-      {/* 当能获取到用户信息时，根据 current_plan 字段展示对应的内容 */}
-      {user ? (
-        <>
-          {user.has_subscription !== null ? <UsageGuide /> : (
-            <>
-              {hasStoredApiKey ? (
-                // 已登录且设置了API KEY的情况
-                <>
-                  <UsageGuide />
-
-                  <Card className="mt-8">
-                    <CardHeader>
-                      <div className="flex items-center gap-2">
-                        <Key className="w-6 h-6" />
-                        <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
-                      </div>
-                      <CardDescription>
-                        {t('loginPage.apiKey.alreadySetup')}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ApiKeyForm initialApiKey={storedApiKey} onSaved={() => window.location.reload()} />
-                    </CardContent>
-                  </Card>
-
-                  <div className="mt-8">
-                    <SubscriptionPrompt apiKeySetted />
-                  </div>
-                </>
-              ) : (
-                // 原有的免费用户视图（已登录但未设置API KEY）
-                <div className="relative gap-6 grid md:grid-cols-2 mb-8">
-                  <SubscriptionPrompt />
-
-                  {/* 移动端水平 OR 分隔符 */}
-                  <div className="md:hidden flex justify-center items-center">
-                    <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
-                  </div>
-
-                  <Card className="relative hover:border-primary transition-colors">
-                    <CardHeader>
-                      <div className="flex items-center gap-2">
-                        <Key className="w-6 h-6" />
-                        <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
-                      </div>
-                      <CardDescription>
-                        {t('loginPage.apiKey.description')}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ApiKeyForm initialApiKey={storedApiKey} onSaved={() => window.location.reload()} />
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </>
-          )}
-        </>
-      ) : null}
-
-      {/* 没有用户但有存储的 API key 时的视图 */}
-      {!user && hasStoredApiKey ? (
-        <div>
           <UsageGuide />
-
-          <Card className="mt-8">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Key className="w-6 h-6" />
-                <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
-              </div>
-              <CardDescription>
-                {t('loginPage.apiKey.alreadySetup')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ApiKeyForm initialApiKey={storedApiKey} onSaved={() => window.location.reload()} />
-            </CardContent>
-          </Card>
-
-          <Card className="relative mt-[28px] transition-colors">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <UserCircle className="w-6 h-6" />
-                <CardTitle className="text-xl">{t('loginPage.signIn.title')}</CardTitle>
-              </div>
-              <CardDescription>
-                {t('loginPage.signIn.description')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AuthForm />
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
+          <ManageApiKey storedApiKey={storedApiKey} highlightOnHover={false} />
+        </>
+      ) : (
+        <MissingKey />
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { showNotification } from '@/common/notify';
-import { API_BASE_URL } from "@/utils/api";
+// import { API_BASE_URL } from "@/utils/api";
 
 // 将选中文本复制到剪贴板
 export async function copyToClipboard(text: string) {

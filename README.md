@@ -1,56 +1,67 @@
-# Bunn Plugin
+# Bunn 浏览器扩展
 
-一个浏览器插件，用于字幕提取和文本翻译。
+这是一个浏览器扩展项目，从原始的 monorepo 转换为独立项目。
 
-## 功能
+## 功能特性
 
-1. **字幕提取**：在YouTube和Netflix等视频网站上提取字幕。
-2. **文本翻译**：在任何网页上选中文本后按下"t"键进行翻译。
-3. **单词查询**：选中单词或短语后显示悬浮窗，展示其在句子中的意思。
+- 浏览器扩展，提供便捷的翻译和语音转文字功能
+- 使用 Microsoft 认知服务 API 进行文本到语音的转换
+- 基于 React 构建的用户界面
+- 使用 Tailwind CSS 和 shadcn/ui 组件库
+
+## 开发说明
+
+### 环境准备
+
+1. 确保已安装 Node.js (v18+) 和 pnpm
+2. 复制 `.env.example` 为 `.env` 并填入必要的 API 密钥
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 开发模式
+
+```bash
+pnpm dev
+```
+
+### 构建生产版本
+
+```bash
+pnpm build
+```
+
+构建后的文件将位于 `dist` 目录中，可以加载到浏览器的扩展管理页面进行测试。
+
+## 浏览器支持
+
+- Chrome
+- Edge
+- Firefox (部分功能可能需要调整)
 
 ## 项目结构
 
 ```
-root/
+bunn-extension/
+├── dist/             # 构建输出目录
 ├── src/
-│   ├── common/             # 共享代码
-│   │   ├── utils.ts
-│   │   └── types.ts
-│   ├── content/            # 内容脚本
-│   │   ├── subtitle/       # 字幕功能
-│   │   │   └── index.ts
-│   │   └── translation/    # 翻译功能
-│   │       └── index.ts
-│   ├── popup/              # 弹出窗口
-│   │   └── index.tsx
-│   ├── background/         # 后台脚本
-│   │   └── index.ts
-│   └── manifest.json
-├── dist/                   # 构建输出
-└── package.json            # 单一 package.json
+│   ├── assets/       # 静态资源文件
+│   ├── background/   # 浏览器扩展的后台脚本
+│   ├── common/       # 通用代码
+│   ├── components/   # React 组件
+│   │   └── ui/       # UI 组件库
+│   ├── content/      # 内容脚本
+│   ├── lib/          # 工具库
+│   ├── popup/        # 弹出窗口
+│   ├── utils/        # 工具函数
+│   └── manifest.json # 扩展清单文件
+├── package.json
+├── rollup.config.js  # Rollup 打包配置
+└── tsconfig.json     # TypeScript 配置
 ```
-
-## 开发
-
-1. 安装依赖：
-```
-npm install
-```
-
-2. 开发模式：
-```
-npm run dev
-```
-
-3. 构建插件：
-```
-npm run build
-```
-
-4. 加载插件：
-   - 打开Chrome浏览器，进入扩展程序页面（chrome://extensions/）
-   - 开启"开发者模式"
-   - 点击"加载已解压的扩展程序"，选择项目的`dist`目录
 
 ## 配置
 

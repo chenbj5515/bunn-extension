@@ -69,6 +69,12 @@ export function initializeStyles() {
             opacity: 1;
             background-color: rgba(0, 0, 0, 0.1);
         }
+        
+        /* 临时容器样式 */
+        .comfy-trans-temp-container {
+            padding: 10px;
+        }
+        
         .comfy-trans-loading {
             text-align: center;
             padding: 15px;

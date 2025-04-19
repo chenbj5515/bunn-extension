@@ -1,4 +1,4 @@
-import { askAI } from '@/common/api';
+import { generateText } from '@/common/api';
 import { initializeStyles } from "./styles";
 import {
     createTranslationDiv,
@@ -79,10 +79,10 @@ export async function initializeTranslation() {
                 handleTranslation(e);
             }
 
-            // 用户选中文本后连续按下C键，会被识别为复制事件。
+            // 用户选中文本后按下Alt键，会被识别为复制事件
             // 复制事件会调用copyToClipboard函数，不同于普通的COPY，这里会把JSON复制到剪贴板
             // JSON中不仅包括选中文本，并且还有URL参数和滚动位置信息，这些信息会用于恢复选中文本的位置
-            if (e.key.toLowerCase() === 'c') {
+            if (e.key === 'Alt') {
                 handleCopy(e);
             }
         }, true);
@@ -105,23 +105,17 @@ function handleTranslation(e: KeyboardEvent) {
 }
 
 function handleCopy(e: KeyboardEvent) {
-    const currentTime = Date.now();
-    if (currentTime - lastCKeyPressTime <= 500) { // 500ms内连续按两次
-        const selection = window.getSelection();
-        if (selection && selection.toString().trim()) {
-            e.preventDefault();
-            e.stopPropagation();
-            copyToClipboard(selection.toString().trim());
-        }
+    const selection = window.getSelection();
+    // 只有在有选中文本的情况下才执行
+    if (selection && selection.toString().trim()) {
+        e.preventDefault();
+        e.stopPropagation();
+        copyToClipboard(selection.toString().trim());
     }
-    lastCKeyPressTime = currentTime;
 }
 
 // 跟踪当前显示的悬浮窗
 let currentVisiblePopup: HTMLElement | null = null;
-
-// 跟踪上一次按C键的时间
-let lastCKeyPressTime = 0;
 
 // 处理选中文本事件
 async function processSelection(selection: Selection | null) {
@@ -141,10 +135,11 @@ async function processSelection(selection: Selection | null) {
     console.log('选中的文本:', selectedText);
     console.log('段落文本:', fullParagraphText);
 
+    const shouldTranslateAsFullParagraphResult = await shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText);
     // 使用判定函数决定是整段翻译还是部分文本翻译
-    if (shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText)) {
-        console.log('处理整段翻译');
-        await translateFullParagraph(paragraphNode, selectedText ? selectedText : fullParagraphText);
+    if (shouldTranslateAsFullParagraphResult) {
+        console.log('处理整段翻译', paragraphNode);
+        await translateFullParagraph(paragraphNode, fullParagraphText);
     } else {
         console.log('处理部分文本翻译');
         const range = selection?.getRangeAt(0)!;
@@ -219,7 +214,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
         originalDiv.appendChild(playButton);
 
         // 6. 发起翻译请求并处理结果
-        const translationPromise = askAI(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
+        const translationPromise = generateText(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
         const translation = await translationPromise;
         handleTranslationUpdate(translationDiv, originalText, selectedText, translation);
 
@@ -232,7 +227,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
             console.warn('无法为选中文本添加下划线，可能是文本在DOM中未找到');
         }
     } catch (error: any) {
-        console.error('翻译过程中出错:', error instanceof Error ? error.message : String(error));
+        console.error('翻译过程中出错1:', error instanceof Error ? error.message : error);
         // alert('翻译失败，请查看控制台获取详细错误信息');
     }
 }

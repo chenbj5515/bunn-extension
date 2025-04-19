@@ -80,9 +80,44 @@ export function checkSubtitle() {
   }
 }
 
+// export async function getImageDataFromBlob(blob: Blob): Promise<string> {
+//   try {
+//     // 创建 FormData 对象
+//     const formData = new FormData();
+
+//     // 将 blob 添加到 FormData，使用'image'作为键
+//     const file = new File([blob], 'subtitle.jpg', { type: 'image/jpeg' });
+//     formData.append('image', file);
+
+//     // 调用 Google Vision API，设置正确的 Content-Type
+
+//     // 获取响应数据
+//     const responseData = await response.json();
+
+//     // 检查响应
+//     if (responseData && responseData.success) {
+//       // 成功响应包含text对象
+//       if ('text' in responseData && responseData.text) {
+//         return responseData.text.fullText || '';
+//       }
+//       return '';
+//     } else {
+//       // 失败响应包含error字段
+//       if ('error' in responseData) {
+//         console.error('Google Vision API 返回错误:', responseData.error);
+//       } else {
+//         console.error('Google Vision API 返回未知错误');
+//       }
+//       return '';
+//     }
+//   } catch (error) {
+//     console.error('调用 Google Vision API 失败:', error);
+//     return '';
+//   }
+// }
+
 // 从图像中提取字幕
 export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]) {
-  // const apiKey = await getApiKey();
   const apiKey = false
 
   if (apiKey) {
@@ -133,12 +168,14 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
     }
   });
 
-  if (response.error) {
+  console.log('response:', response);
+
+  if (response?.error) {
     showNotification(response.error);
     throw new Error(response.error);
   }
 
-  return response.result || '';
+  return response?.result || '';
 }
 
 // 将 ArrayBuffer 转换为 base64
@@ -167,6 +204,44 @@ export async function captureYoutubeSubtitle() {
     return;
   }
 
+  // 获取channelId和channelName
+  let channelId = "";
+  let channelName = "";
+  let avatarUrl = "";
+  const channelElement = document.querySelector('ytd-channel-name a');
+  if (channelElement) {
+    const href = channelElement.getAttribute('href');
+    if (href) {
+      channelId = href.startsWith('/') ? href.substring(1) : href;
+    }
+    channelName = channelElement.textContent?.trim() || "";
+    
+    // 获取频道头像URL
+    const avatarElement = document.querySelector('#avatar');
+    if (avatarElement) {
+      const imgElement = avatarElement.querySelector('img');
+      if (imgElement) {
+        avatarUrl = imgElement.getAttribute('src') || "";
+      }
+    }
+  }
+
+  // 获取videoTitle
+  let videoTitle = "";
+  const titleElement = document.querySelector('#title yt-formatted-string');
+  if (titleElement) {
+    const titleAttr = titleElement.getAttribute('title');
+    if (titleAttr) {
+      // 移除类似【アニメ】【コント】的括号内容
+      videoTitle = titleAttr.replace(/【[^】]*】/g, '').trim();
+    }
+  }
+
+  // 获取videoId
+  let videoId = "";
+  const urlParams = new URLSearchParams(window.location.search);
+  videoId = urlParams.get('v') || "";
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -181,11 +256,12 @@ export async function captureYoutubeSubtitle() {
       canvas.toBlob(async (blob) => {
         try {
           isRequestInProgress = true; // 标记请求开始
-          showNotification('Reading current subtitles...', true);
+          showNotification('Reading current subtitles...', "info");
           if (blob) {
             const arrayBuffer = await blob.arrayBuffer();
             const imageData = Array.from(new Uint8Array(arrayBuffer))  // 转换为普通数组以便传递
-
+            // const subtitleText = await getImageDataFromBlob(blob);
+            console.log('imageData:', imageData);
             const subtitleText = await extractSubtitlesFromImage(imageData);
             console.log('subtitleText:', subtitleText);
             if (subtitleText) {
@@ -194,7 +270,12 @@ export async function captureYoutubeSubtitle() {
 
               const subtitleData = {
                 url: currentUrl.toString(),
-                text: subtitleText
+                text: subtitleText,
+                channelId: channelId,
+                channelName: channelName,
+                videoTitle: videoTitle,
+                videoId: videoId,
+                avatarUrl: avatarUrl,
               };
 
               await navigator.clipboard.writeText(JSON.stringify(subtitleData));

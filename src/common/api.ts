@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
-import { APIError } from '../utils/api';
+import OpenAI, { APIError } from 'openai';
+// import { APIError } from '../utils/api';
 
 // 获取API Key的方法
 export const getApiKey = async (): Promise<string | null> => {
@@ -8,7 +8,7 @@ export const getApiKey = async (): Promise<string | null> => {
 };
 
 // 非流式请求AI的方法
-export const askAI = async (
+export const generateText = async (
   prompt: string,
   model: string = 'gpt-4o'
 ): Promise<string> => {
@@ -33,7 +33,7 @@ export const askAI = async (
 
       // 没有API Key，通过background.js调用
       const response = await chrome.runtime.sendMessage({
-        type: 'CALL_AI_API',
+        type: 'GENERATE_TEXT',
         payload: { prompt, model }
       });
 
@@ -41,13 +41,13 @@ export const askAI = async (
       if (response.error) {
         // 如果是API返回的格式化错误
         if (response.errorCode) {
-          throw new APIError(response.error, response.errorCode);
+          // throw new APIError(response.error, response.errorCode);
         } else {
           throw new Error(response.error);
         }
       }
 
-      return response.result.data;
+      return response.text;
     }
   } catch (error) {
     // 原样抛出APIError，保留错误类型
@@ -61,7 +61,7 @@ export const askAI = async (
 };
 
 // 流式请求AI的方法
-export const askAIStream = async (
+export const generateTextStream = async (
   prompt: string,
   model: string = 'gpt-4o',
   onChunk: (chunk: string) => void = () => { },
@@ -114,7 +114,7 @@ export const askAIStream = async (
         } else if (message.type === 'stream-error') {
           // 处理流式请求中的错误
           if (message.errorCode) {
-            onError(new APIError(message.error, message.errorCode));
+            onError(new APIError(message.error, message.errorCode, message.errorCode, message.errorCode));
           } else {
             onError(new Error(message.error));
           }
