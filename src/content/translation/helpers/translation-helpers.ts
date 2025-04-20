@@ -1,5 +1,5 @@
 import { generateText, generateTextStream } from "@/common/api";
-import { showNotification } from "@/common/notify";
+import { showNotification, showNotificationWithAction } from "@/common/notify";
 import { calculateWidthFromCharCount } from "./popup-helpers";
 import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/utils';
 import { isEntireParagraphSelected } from './dom-helpers';
@@ -42,20 +42,32 @@ export async function handlePlainTextTranslation(
             console.log('翻译完成:', fullText);
         },
         (error) => {
-            // 错误处理
-            // 检查是否是API错误
-            if (error && typeof error === 'object' && 'errorCode' in error) {
-                // 特定API错误处理，比如token限制
-                showNotification(`翻译失败: ${error.message}`, 'error');
-                console.log(error, "error");
-                // 如果是token限制，可以添加特别的提示
-                if (error.errorCode === 3001) {
-                    showNotification(`今日使用的token已达上限，<a href="${process.env.API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
-                }
+            // 错误处理            
+            console.log('翻译错误:', error);
+            
+            // 获取升级URL
+            const upgradeUrl = process.env.API_BASE_URL ? 
+                `${process.env.API_BASE_URL}/pricing` : 
+                'https://www.bunn.ink/pricing';
+            
+            // 简化错误检测逻辑
+            // 检查错误信息是否包含token限制关键词或错误码
+            if (
+                // 检查是否是403状态码（通过安全的类型检查）
+                (error && typeof error === 'object' && 'status' in error && error.status === 403) ||
+                // 检查是否有3001错误码(自定义错误)
+                (error && typeof error === 'object' && 'errorCode' in error && error.errorCode === 3001) ||
+                // 检查错误消息中是否包含token相关词
+                (error && error.message && (
+                    error.message.toLowerCase().includes('token') ||
+                    error.message.toLowerCase().includes('limit') ||
+                    error.message.toLowerCase().includes('quota')
+                ))
+            ) {
+                showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
             } else {
-                console.error('翻译失败:', error);
-                // 一般错误处理
-                // showNotification('翻译失败，请稍后重试', 'error');
+                // 其他错误
+                showNotification(`翻译失败: ${error?.message || '未知错误'}`, 'error');
             }
 
             // 翻译失败时清空内容
@@ -137,14 +149,31 @@ export async function handleExplanationStream(
             // 流式响应完成后的处理
         },
         (error) => {
-            // 错误处理
-            // 检查是否是API错误
-            if (error && typeof error === 'object' && 'errorCode' in error) {
-                // 特定API错误处理
-                showNotification(`分析失败: ${error.message}`, 'error');
+            console.log('解析错误:', error);
+            
+            // 获取升级URL
+            const upgradeUrl = process.env.API_BASE_URL ? 
+                `${process.env.API_BASE_URL}/pricing` : 
+                'https://www.bunn.ink/pricing';
+            
+            // 简化错误检测逻辑
+            // 检查错误信息是否包含token限制关键词或错误码
+            if (
+                // 检查是否是403状态码（通过安全的类型检查）
+                (error && typeof error === 'object' && 'status' in error && error.status === 403) ||
+                // 检查是否有3001错误码(自定义错误)
+                (error && typeof error === 'object' && 'errorCode' in error && error.errorCode === 3001) ||
+                // 检查错误消息中是否包含token相关词
+                (error && error.message && (
+                    error.message.toLowerCase().includes('token') ||
+                    error.message.toLowerCase().includes('limit') ||
+                    error.message.toLowerCase().includes('quota')
+                ))
+            ) {
+                showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
             } else {
-                // 一般错误处理
-                showNotification('分析失败，请稍后重试', 'error');
+                // 其他错误
+                showNotification(`分析失败: ${error?.message || '请稍后重试'}`, 'error');
             }
 
             // 清空解释区域内容
@@ -187,12 +216,44 @@ export async function shouldTranslateAsFullParagraph(selectedText: string, parag
 
     if (findNextCharIsNewline(fullParagraphText, selectedText)) return true;
 
-    const result = await generateText(`
-        在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果你觉得它是单词或短语回答字符串"no"，如果你觉得它是句子中的段落，返回字符串"yes"。
-    `);
+    try {
+        const result = await generateText(`
+            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果你觉得它是单词或短语回答字符串"no"，如果你觉得它是句子中的段落，返回字符串"yes"。
+        `);
 
-    console.log(result, "result");
-    return result === "yes";
+        console.log(result, "result");
+        return result === "yes";
+    } catch (error: any) {
+        console.error('判断是否整段翻译失败:', error);
+        
+        // 获取升级URL
+        const upgradeUrl = process.env.API_BASE_URL ? 
+            `${process.env.API_BASE_URL}/pricing` : 
+            'https://www.bunn.ink/pricing';
+        
+        // 简化错误检测逻辑
+        // 检查错误信息是否包含token限制关键词或错误码
+        if (
+            // 检查是否是403状态码（通过安全的类型检查）
+            (error && typeof error === 'object' && 'status' in error && error.status === 403) ||
+            // 检查是否有3001错误码(自定义错误)
+            (error && typeof error === 'object' && 'errorCode' in error && error.errorCode === 3001) ||
+            // 检查错误消息中是否包含token相关词
+            (error && error.message && (
+                error.message.toLowerCase().includes('token') ||
+                error.message.toLowerCase().includes('limit') ||
+                error.message.toLowerCase().includes('quota')
+            ))
+        ) {
+            showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
+        } else {
+            // 其他错误
+            showNotification(`分析失败: ${error?.message || '请稍后重试'}`, 'error');
+        }
+        
+        // 出错时默认按单词处理
+        return false;
+    }
 }
 
 /**
@@ -217,21 +278,34 @@ export async function correctSelectedText(selectedText: string, fullParagraphTex
         // 如果没有有效的修正文本，则返回原始文本
         return selectedText;
     } catch (error: any) {
-        console.error('AI修正文本失败:', error instanceof Error ? error.message : String(error));
+        console.error('AI修正文本失败:', error);
 
-        // 检查是否是API错误，特别是token限制
-        if (error && typeof error === 'object' && 'errorCode' in error) {
-            // 显示错误通知
-            showNotification(`翻译失败: ${String(error.message || '未知错误')}`, 'error');
-
-            // 如果是token限制，给出特定提示
-            if (error.errorCode === 3001) {
-                showNotification(`今日使用的token已达上限，<a href="${process.env.API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
-            }
-            throw error; // 重新抛出错误，让调用方决定如何处理
+        // 获取升级URL
+        const upgradeUrl = process.env.API_BASE_URL ? 
+            `${process.env.API_BASE_URL}/pricing` : 
+            'https://www.bunn.ink/pricing';
+        
+        // 简化错误检测逻辑
+        // 检查错误信息是否包含token限制关键词或错误码
+        if (
+            // 检查是否是403状态码（通过安全的类型检查）
+            (error && typeof error === 'object' && 'status' in error && error.status === 403) ||
+            // 检查是否有3001错误码(自定义错误)
+            (error && typeof error === 'object' && 'errorCode' in error && error.errorCode === 3001) ||
+            // 检查错误消息中是否包含token相关词
+            (error && error.message && (
+                error.message.toLowerCase().includes('token') ||
+                error.message.toLowerCase().includes('limit') ||
+                error.message.toLowerCase().includes('quota')
+            ))
+        ) {
+            showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
+        } else {
+            // 其他错误
+            showNotification(`翻译失败: ${error?.message || '未知错误'}`, 'error');
         }
-
-        // 修正失败时返回原始选中文本
+        
+        // 在显示通知之后，返回原始选中文本
         return selectedText;
     }
 } 

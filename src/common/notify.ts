@@ -208,3 +208,104 @@ function clearAllNotifications() {
     notification.remove();
   });
 }
+
+// 显示带有按钮的通知
+export function showNotificationWithAction(
+  messageOrKey: string, 
+  type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
+  actionText: string,
+  actionUrl: string,
+  isTranslationKey: boolean = false,
+  ...args: any[]
+) {
+  if (!document.body) return; // 确保document.body存在
+  
+  // 获取要显示的消息文本
+  const message = isTranslationKey ? getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
+  // 获取按钮文本（支持国际化）
+  const buttonText = isTranslationKey ? getTranslation(actionText, undefined, ...args) : actionText;
+
+  // 清除所有现有通知，确保不会有多个通知同时显示
+  clearAllNotifications();
+
+  const notification = document.createElement('div');
+  notification.className = 'netflix-subtitle-notification';
+  notification.classList.add(type);
+  
+  // 设置通知样式为水平布局
+  notification.style.display = 'flex';
+  notification.style.flexDirection = 'row'; // 水平布局
+  notification.style.alignItems = 'center';
+  notification.style.justifyContent = 'space-between'; // 内容两端对齐
+  notification.style.padding = '12px';
+  notification.style.minWidth = '300px'; // 设置最小宽度，确保有足够空间
+  
+  // 创建消息容器，它将包含图标和文本
+  const messageContainer = document.createElement('div');
+  messageContainer.style.display = 'flex';
+  messageContainer.style.alignItems = 'center';
+  messageContainer.style.marginRight = '16px'; // 与按钮保持间距
+  messageContainer.style.flex = '1'; // 让消息容器占据剩余空间
+  
+  // 根据类型添加不同的图标
+  if (type === 'error') {
+    const icon = document.createElement('span');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
+    icon.className = 'notification-icon';
+    icon.style.height = '100%';
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.marginRight = '8px'; // 图标与文本的间距
+    messageContainer.appendChild(icon);
+  } else if (type === 'warning') {
+    const icon = document.createElement('span');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+    icon.className = 'notification-icon';
+    icon.style.height = '100%';
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.marginRight = '8px'; // 图标与文本的间距
+    messageContainer.appendChild(icon);
+  }
+  
+  // 添加消息文本
+  const messageSpan = document.createElement('span');
+  messageSpan.innerHTML = message;
+  messageSpan.style.height = '100%';
+  messageSpan.style.display = 'flex';
+  messageSpan.style.alignItems = 'center';
+  messageContainer.appendChild(messageSpan);
+  
+  notification.appendChild(messageContainer);
+  
+  // 创建按钮
+  const button = document.createElement('button');
+  button.textContent = buttonText;
+  button.style.padding = '4px 12px';
+  button.style.borderRadius = '4px';
+  button.style.backgroundColor = '#3B82F6';
+  button.style.color = 'white';
+  button.style.border = 'none';
+  button.style.cursor = 'pointer';
+  button.style.fontWeight = 'bold';
+  button.style.whiteSpace = 'nowrap'; // 防止按钮文本换行
+  button.style.flexShrink = '0'; // 防止按钮被压缩
+  
+  // 添加按钮点击事件
+  button.onclick = (e) => {
+    e.preventDefault();
+    window.open(actionUrl, '_blank');
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  };
+  
+  notification.appendChild(button);
+  document.body.appendChild(notification);
+  
+  // 触发动画
+  setTimeout(() => notification.classList.add('show'), 10);
+  
+  // 通知不会自动消失，用户需要点击按钮或手动关闭
+  
+  return notification;
+}

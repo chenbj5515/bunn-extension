@@ -1,4 +1,4 @@
-import { showNotification, updateNotification } from '@/common/notify';
+import { showNotification, updateNotification, showNotificationWithAction } from '@/common/notify';
 
 // 全局变量
 export let lastSubtitle = { text: '', startTime: 0 };
@@ -181,11 +181,18 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
     }
   });
 
-  console.log('response:', response);
-
   if (response?.error) {
-    showNotification(response.error, 'error');
-    throw new Error(response.error);
+    if (response.error === 'TOKEN_LIMIT_REACHED') {
+      // 处理token限制的特殊情况
+      // 根据环境选择不同的URL
+      const upgradeUrl = 'https://www.bunn.ink/pricing' 
+
+      showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
+      throw new Error('Token limit reached');
+    } else {
+      showNotification(response.error, 'error');
+      throw new Error(response.error);
+    }
   }
 
   return response?.result || '';
@@ -305,9 +312,12 @@ export async function captureYoutubeSubtitle() {
               } else {
                 updateNotification('subtitle.recognition.failed', 'error', true);
               }
-            } catch (error) {
+            } catch (error: any) {
               console.error('字幕提取失败:', error);
-              updateNotification('subtitle.extraction.failed', 'error', true);
+              // 如果错误已经由extractSubtitlesFromImage处理，则此处不再显示通知
+              if (error.message !== 'Token limit reached') {
+                updateNotification('subtitle.extraction.failed', 'error', true);
+              }
             }
           } else {
             updateNotification('image.creation.failed', 'error', true);

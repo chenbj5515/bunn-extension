@@ -197,21 +197,16 @@ export function handlePopupDisplay(e: MouseEvent) {
             popup.style.display = 'block';
             popup.style.opacity = '1';
             popup.style.visibility = 'visible';
-            console.log('设置Popup为可见，当前状态:', popup.style.display, popup.style.opacity, popup.style.visibility);
 
             // 使用setTimeout确保DOM已更新
             setTimeout(() => {
-                console.log('setTimeout回调执行，设置Popup位置');
                 // 计算位置
                 const rect = span.getBoundingClientRect();
                 const popupRect = popup.getBoundingClientRect();
-                console.log('span位置:', rect);
-                console.log('Popup尺寸:', popupRect);
 
                 // 使用存储的最终宽度，如果有的话
                 if (popup.dataset.finalWidth) {
                     const finalWidth = parseInt(popup.dataset.finalWidth);
-                    console.log('使用存储的最终宽度:', finalWidth);
                     popup.style.width = `${finalWidth}px`;
                     popup.style.maxWidth = `${finalWidth}px`;
                 }
@@ -219,33 +214,27 @@ export function handlePopupDisplay(e: MouseEvent) {
                 // 将悬浮窗定位在单词的右下角
                 let posX = rect.right;
                 let posY = rect.bottom;
-                console.log('初始计算位置(右下角):', posX, posY);
 
                 // 检查是否会超出视窗右侧
                 if (posX + popupRect.width > window.innerWidth + window.scrollX) {
                     // 如果超出右侧，则显示在左侧
                     posX = rect.left - popupRect.width;
-                    console.log('调整水平位置，避免超出右侧:', posX);
                 }
 
                 // 检查是否会超出视窗底部
                 if (posY + popupRect.height > window.innerHeight + window.scrollY) {
                     // 如果超出底部，则显示在上方
                     posY = rect.top - popupRect.height;
-                    console.log('调整垂直位置，避免超出底部:', posY);
                 }
 
                 // 设置最终位置，使用absolute定位而不是fixed
                 popup.style.position = 'absolute';
                 popup.style.left = `${posX + window.scrollX}px`;
                 popup.style.top = `${posY + window.scrollY}px`;
-                console.log('设置Popup最终位置:', posX + window.scrollX, posY + window.scrollY, '当前状态:', popup.style.display, popup.style.opacity);
             }, 0);
         } else {
-            console.error('未找到Popup元素，ID:', popupId);
             showNotification('无法加载译文弹窗', 'error');
         }
     } else {
-        console.log('span没有关联的Popup ID');
     }
 }

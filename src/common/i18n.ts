@@ -83,6 +83,15 @@ export const notificationMessages: NotificationTranslations = {
     'fr': 'L\'extraction des sous-titres a échoué',
     'de': 'Untertitelextraktion fehlgeschlagen'
   },
+  'token.limit.reached': {
+    'en': 'Token limit reached. Upgrade to unlock more tokens.',
+    'zh': '您已达到token限制，升级后解锁更多token。',
+    'ja': 'トークン制限に達しました。アップグレードして更多くのトークンをアンロックしてください。',
+    'ko': '토큰 제한에 도달했습니다. 업그레이드하여 더 많은 토큰을 이용하세요.',
+    'es': 'Límite de tokens alcanzado. Actualice para desbloquear más tokens.',
+    'fr': 'Limite de jetons atteinte. Mettez à niveau pour débloquer plus de jetons.',
+    'de': 'Token-Limit erreicht. Upgrade für mehr Tokens freischalten.'
+  },
   'image.creation.failed': {
     'en': 'Failed to create image',
     'zh': '无法创建图像',
@@ -176,6 +185,15 @@ export const notificationMessages: NotificationTranslations = {
     'es': 'No se encontró ningún parámetro de tiempo en la URL',
     'fr': 'Aucun paramètre de temps trouvé dans l\'URL',
     'de': 'Kein Zeitparameter in URL gefunden'
+  },
+  'upgrade.button': {
+    'en': 'Upgrade',
+    'zh': '升级',
+    'ja': 'アップグレード',
+    'ko': '업그레이드',
+    'es': 'Actualizar',
+    'fr': 'Améliorer',
+    'de': 'Upgrade'
   }
 };
 

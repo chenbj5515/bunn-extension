@@ -1,4 +1,4 @@
-import OpenAI, { APIError } from 'openai';
+import OpenAI from 'openai';
 // import { APIError } from '../utils/api';
 
 // 获取API Key的方法
@@ -39,23 +39,21 @@ export const generateText = async (
 
       // 检查是否存在错误信息
       if (response.error) {
-        // 如果是API返回的格式化错误
+        // 创建包含完整信息的错误对象
+        const error = new Error(response.error);
         if (response.errorCode) {
-          // throw new APIError(response.error, response.errorCode);
-        } else {
-          throw new Error(response.error);
+          // 为错误对象添加额外属性
+          (error as any).errorCode = response.errorCode;
+          (error as any).status = response.errorCode === 3001 ? 403 : response.errorCode;
         }
+        throw error;
       }
 
       return response.text;
     }
   } catch (error) {
-    // 原样抛出APIError，保留错误类型
-    if (error instanceof APIError) {
-      throw error;
-    }
-    
-    // 其他错误直接抛出
+    // 所有错误直接抛出，不再区分类型
+    console.error('生成文本失败:', error);
     throw error;
   }
 };
@@ -113,11 +111,13 @@ export const generateTextStream = async (
           chrome.runtime.onMessage.removeListener(messageHandler);
         } else if (message.type === 'stream-error') {
           // 处理流式请求中的错误
+          const error = new Error(message.error || "未知错误");
           if (message.errorCode) {
-            onError(new APIError(message.error, message.errorCode, message.errorCode, message.errorCode));
-          } else {
-            onError(new Error(message.error));
+            // 添加额外属性
+            (error as any).errorCode = message.errorCode;
+            (error as any).status = message.errorCode === 3001 ? 403 : message.errorCode;
           }
+          onError(error);
           // 错误发生后，移除监听器
           chrome.runtime.onMessage.removeListener(messageHandler);
         }
@@ -129,7 +129,7 @@ export const generateTextStream = async (
   } catch (error) {
     console.error('流式调用AI API失败:', error);
     // 调用错误处理回调
-    onError(error instanceof APIError ? error : new Error(String(error)));
+    onError(error as Error);
     throw error;
   }
 };

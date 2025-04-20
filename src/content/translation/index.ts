@@ -20,7 +20,6 @@ import {
 import {
     findParagraphInsertPosition,
     addUnderlineWithPopup,
-    isEntireParagraphSelected,
     getParagraphNode
 } from './helpers/dom-helpers';
 
