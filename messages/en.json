@@ -505,7 +505,7 @@
     "BunnIsBest": "Bunn provides translation, phonetic symbols, shadowing practice and dictation features. It also records the context of each copy, allowing you to instantly replay the scene anytime.",
     "shortcuts": {
       "option": {
-        "title": "option/Alt",
+        "title": "Ctrl",
         "forText": "For text",
         "textPrefix": "Select and press to copy to clipboard. Paste into ",
         "textSuffix": " app to review anytime and return to the original context with one click.",

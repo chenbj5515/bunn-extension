@@ -463,7 +463,7 @@
         "BunnIsBest": "Bunn會提供翻譯、音標、影子跟讀和默寫等功能，並且Bunn還會記錄這次複製發生的場景，你可以隨時一鍵進行場景重現。",
         "shortcuts": {
             "option": {
-                "title": "option/Alt",
+                "title": "Ctrl",
                 "forText": "對於文本",
                 "textPrefix": "選中後按下即可複製到剪貼簿，貼到",
                 "textSuffix": "應用後可以隨時複習並且一鍵回到上下文。",

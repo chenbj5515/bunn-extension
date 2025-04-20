@@ -505,7 +505,7 @@
         "BunnIsBest": "Bunn会给提供翻译，音标，影子跟读和默写等功能，并且Bunn还会记录这次复制发生的场景，你可以随时一键进行场景再现。",
         "shortcuts": {
           "option": {
-            "title": "option/Alt",
+            "title": "Ctrl",
             "forText": "对于文本",
             "textPrefix": "选中文本后按下按键复制到剪切板，粘贴到",
             "textSuffix": "应用后可以随时复习并且一键回到上下文。",

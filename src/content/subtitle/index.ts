@@ -52,7 +52,7 @@ let lastCKeyPressTime = 0;
  */
 async function handleKeyDown(e: KeyboardEvent) {
   // 处理Ctrl键
-  if ((e.key === 'Alt')) {
+  if (e.ctrlKey && !e.shiftKey && !e.altKey) {
     await handleCopySubtitle(e);
   }
   // 处理YouTube上的左右箭头键
