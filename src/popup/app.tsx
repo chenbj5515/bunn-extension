@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-// import { Key, UserCircle } from "lucide-react"
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// // import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "@/components/language-selector"
 import Loading from "@/components/loading"
 import { UserMenu } from "./user-menu"
 import MissingKey from "./missing-key"
 import SignIn from "./sign-in"
-// import { UserMenu } from "@/popup/user-menu"
-// import SubscriptionPrompt from "./subscription-prompt"
-// 导入i18n配置
 import "@/utils/i18n"
 import UsageGuide from "./usage-guide"
 import ManageApiKey from "./manage-api-key"
@@ -55,8 +49,12 @@ export default function SettingsPage() {
   const { t } = useTranslation();
 
   // 使用client调用新的/users/session接口
+
+  // const apiBaseUrl = process.env.API_BASE_URL;
+  const apiBaseUrl = "https://bunn.ink";
+
   useEffect(() => {
-    fetch(`${process.env.API_BASE_URL}/api/user/session`, {
+    fetch(`${apiBaseUrl}/api/user/session`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -66,14 +64,13 @@ export default function SettingsPage() {
         const responseData = await response.json();
 
         if (responseData.success && 'data' in responseData) {
-          const data = responseData.data;
-          const { session, subscription } = data;
+          const {user, subscription} = responseData.data;
 
           const userData: User = {
-            id: session.user.id,
-            name: session.user.name,
-            email: session.user.email,
-            image: session.user.image || undefined,
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image || undefined,
             subscriptionActive: subscription.active,
             expireAt: subscription.expireAt
           };
@@ -84,7 +81,6 @@ export default function SettingsPage() {
         setLoading(false);
       })
       .catch((err: unknown) => {
-        console.error("获取用户信息失败：", err);
         setLoading(false);
       });
   }, []);

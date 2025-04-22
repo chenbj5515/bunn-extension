@@ -11,7 +11,7 @@ import postcss from 'rollup-plugin-postcss';
 import tailwindcss from 'tailwindcss';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import alias from '@rollup/plugin-alias';
+// import alias from '@rollup/plugin-alias';
 import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
