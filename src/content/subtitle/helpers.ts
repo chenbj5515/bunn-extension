@@ -1,4 +1,4 @@
-import { showNotification, updateNotification, showNotificationWithAction } from '@/common/notify';
+import { showNotification, updateNotification, showNotificationWithAction, showNotificationWithLink } from '@/common/notify';
 
 // 全局变量
 export let lastSubtitle = { text: '', startTime: 0 };
@@ -30,6 +30,7 @@ export function addNotificationStyle() {
             display: flex;
             align-items: center;
             gap: 8px;
+            height: 24px; /* 减小高度 */
         }
         .netflix-subtitle-notification.show {
             opacity: 1;
@@ -47,19 +48,19 @@ export function addNotificationStyle() {
             flex-shrink: 0;
         }
         .netflix-subtitle-notification.error {
-            background-color: #FEE2E2;
-            color: #EF4444;
+            background-color: #FFFFFF;
+            color: #000000;
             border-left: 4px solid #EF4444;
         }
         .netflix-subtitle-notification.warning {
-            background-color: #FEF3C7;
-            color: #F59E0B;
+            background-color: #FFFFFF;
+            color: #000000;
             border-left: 4px solid #F59E0B;
         }
         .netflix-subtitle-notification.success {
-            background-color: #DCFCE7;
-            color: #22C55E;
-            border-left: 4px solid #22C55E;
+            background-color: #FFFFFF;
+            color: #000000;
+            border-left: none;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -303,10 +304,10 @@ export async function captureYoutubeSubtitle() {
                 };
 
                 await navigator.clipboard.writeText(JSON.stringify(subtitleData));
-                updateNotification('subtitle.copied', 'success', true);
+                showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true);
                 setTimeout(() => {
-                  hideNotification(); // 3秒后隐藏通知
-                }, 3000);
+                  hideNotification(); // 5秒后隐藏通知（showNotificationWithLink内部已设置为5秒）
+                }, 5000);
                 
                 lastCopiedTime = currentTime; // 记录上次复制的时间
               } else {

@@ -51,12 +51,13 @@ export function showNotification(
     } else if (type === 'success') {
       const icon = document.createElement('span');
       // 使用SVG格式的shadcn风格成功图标
-      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`;
+      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
       icon.className = 'notification-icon';
       // 添加右侧margin以与文本保持间距
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       notification.appendChild(icon);
     } else { // info
       const icon = document.createElement('span');
@@ -162,7 +163,7 @@ export function updateNotification(
       existingNotification.appendChild(icon);
     } else if (type === 'success') {
       const icon = document.createElement('span');
-      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`;
+      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
       icon.className = 'notification-icon';
       icon.style.height = '100%';
       icon.style.display = 'flex';
@@ -207,6 +208,135 @@ function clearAllNotifications() {
   existingNotifications.forEach(notification => {
     notification.remove();
   });
+}
+
+// 显示带有可点击链接的通知
+export function showNotificationWithLink(
+  messageOrKey: string, 
+  type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
+  linkUrl: string = 'https://www.bunn.ink',
+  isTranslationKey: boolean = false,
+  ...args: any[]
+) {
+  if (!document.body) return; // 确保document.body存在
+  
+  // 获取要显示的消息文本
+  let message = isTranslationKey ? getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
+  
+  // 替换_Bunn_，确保其周围有足够空白
+  message = message.replace(/_Bunn_/g, '  <span class="bunn-link">Bunn</span>  ');
+
+  // 清除所有现有通知，确保不会有多个通知同时显示
+  clearAllNotifications();
+
+  const notification = document.createElement('div');
+  notification.className = 'netflix-subtitle-notification';
+  
+  // 设置通知样式
+  notification.style.backgroundColor = '#FFFFFF'; // 固定使用白色背景
+  notification.style.color = '#000000'; // 文字使用黑色
+  notification.style.display = 'flex';
+  notification.style.alignItems = 'center';
+  notification.style.height = '24px'; // 减小高度
+  
+  // 对于成功类型不添加success类名，避免显示绿色边框
+  if (type !== 'success') {
+    notification.classList.add(type);
+  }
+  
+  // 添加链接样式
+  const linkStyle = document.createElement('style');
+  linkStyle.textContent = `
+    .bunn-link {
+      text-decoration: underline;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      color: #000000; /* 使用黑色作为链接颜色，保持黑白调性 */
+      font-weight: 500;
+      padding: 0 2px;
+      margin: 0 3px;
+      display: inline;
+    }
+    .bunn-link:hover {
+      opacity: 0.7;
+    }
+  `;
+  document.head.appendChild(linkStyle);
+  
+  // 添加图标 - 对于成功类型只显示黑色对号，保持黑白调性
+  if (type === 'success') {
+    const icon = document.createElement('span');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
+    icon.className = 'notification-icon';
+    icon.style.height = '100%';
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.marginRight = '8px';
+    notification.appendChild(icon);
+  } else if (type === 'loading') {
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    notification.appendChild(spinner);
+  } else if (type === 'error') {
+    const icon = document.createElement('span');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
+    icon.className = 'notification-icon';
+    icon.style.height = '100%';
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.marginRight = '8px';
+    notification.appendChild(icon);
+  } else if (type === 'warning') {
+    const icon = document.createElement('span');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+    icon.className = 'notification-icon';
+    icon.style.height = '100%';
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.marginRight = '8px';
+    notification.appendChild(icon);
+  } else { // info
+    const icon = document.createElement('span');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+    icon.className = 'notification-icon';
+    icon.style.height = '100%';
+    icon.style.display = 'flex';
+    icon.style.alignItems = 'center';
+    icon.style.marginRight = '8px';
+    notification.appendChild(icon);
+  }
+  
+  // 添加消息内容
+  const messageSpan = document.createElement('span');
+  messageSpan.innerHTML = message;
+  messageSpan.style.height = '100%';
+  messageSpan.style.display = 'flex';
+  messageSpan.style.alignItems = 'center';
+  notification.appendChild(messageSpan);
+  
+  document.body.appendChild(notification);
+  
+  // 添加点击事件处理
+  const bunnLink = notification.querySelector('.bunn-link');
+  if (bunnLink) {
+    bunnLink.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.open(linkUrl, '_blank');
+    });
+  }
+  
+  // 触发动画
+  setTimeout(() => notification.classList.add('show'), 10);
+  
+  // 设置自动消失
+  if (type !== 'loading') {
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 5000); // 增加到5秒，让用户有更多时间看到消息
+  }
+  
+  return notification;
 }
 
 // 显示带有按钮的通知

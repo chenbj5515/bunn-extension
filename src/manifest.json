@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Bunn",
   "version": "1.2.1",
-  "description": "Bunn browser extension",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "description": "Bunn browser extension for subtitle copying and translation",
+  "permissions": ["storage"],
   "host_permissions": [
     "https://bunn.ink/*"
   ],

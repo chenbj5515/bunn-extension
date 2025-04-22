@@ -65,6 +65,15 @@ export const notificationMessages: NotificationTranslations = {
     'fr': 'Données de sous-titres copiées dans le presse-papiers',
     'de': 'Untertiteldaten wurden in die Zwischenablage kopiert'
   },
+  'subtitle.copied.with.ctrl': {
+    'en': 'Copied successfully. Press Ctrl in _Bunn_ to complete collection.',
+    'zh': '复制成功。在_Bunn_中按下Ctrl键完成收录。',
+    'ja': 'コピー成功。_Bunn_でCtrlキーを押して収集を完了します。',
+    'ko': '복사 성공. _Bunn_에서 Ctrl 키를 눌러 수집을 완료하세요.',
+    'es': 'Copiado con éxito. Presione Ctrl en _Bunn_ para completar la colección.',
+    'fr': 'Copié avec succès. Appuyez sur Ctrl dans _Bunn_ pour terminer la collection.',
+    'de': 'Erfolgreich kopiert. Drücken Sie Ctrl in _Bunn_, um die Sammlung abzuschließen.'
+  },
   'subtitle.recognition.failed': {
     'en': 'Failed to recognize subtitles',
     'zh': '无法识别字幕',

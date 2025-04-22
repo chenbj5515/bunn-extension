@@ -9,7 +9,7 @@ import {
   captureYoutubeSubtitle,
   updateLastCopiedTime
 } from './helpers';
-import { showNotification, updateNotification } from '@/common/notify';
+import { showNotification, updateNotification, showNotificationWithLink } from '@/common/notify';
 
 // 业务流程：在Youtube上获取字幕和影子跟读
 // 1 用户打开一个含有内置字幕的Youtube视频（比如：https://www.youtube.com/watch?v=QrwxVi9hWJg&t=374s）
@@ -120,7 +120,7 @@ async function handleCopySubtitle(e: KeyboardEvent) {
         episodeTitle
       }))
         .then(() => {
-          updateNotification('subtitle.copy.success', 'success', true);
+          showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true);
           console.log('Copied Netflix subtitles:', subtitleData);
           updateLastCopiedTime(lastSubtitle.startTime);
         })
