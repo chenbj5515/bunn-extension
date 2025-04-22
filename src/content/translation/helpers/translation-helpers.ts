@@ -3,6 +3,23 @@ import { showNotification, showNotificationWithAction } from "@/common/notify";
 import { calculateWidthFromCharCount } from "./popup-helpers";
 import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/utils';
 import { isEntireParagraphSelected } from './dom-helpers';
+import { getLocaleFromCookie } from '@/common/i18n';
+
+// 根据locale获取翻译目标语言名称
+function getTargetLanguageName(locale: string): string {
+    const languageMap: Record<string, string> = {
+        'zh': '中文',
+        'zh-TW': '繁體中文',
+        'en': 'English',
+        'ja': '日本語',
+        'ko': '한국어',
+        'es': 'Español',
+        'fr': 'Français',
+        'de': 'Deutsch'
+    };
+
+    return languageMap[locale] || 'English';
+}
 
 /**
  * 处理纯文本的翻译，使用流式API
@@ -21,10 +38,14 @@ export async function handlePlainTextTranslation(
     // 清空临时容器的内容，准备接收翻译结果
     tempContainer.innerHTML = '';
 
+    // 获取用户当前语言设置
+    const locale = getLocaleFromCookie();
+    const targetLanguage = getTargetLanguageName(locale);
+
     console.log(originalText, "originalText");
     // 使用流式API获取翻译
     await generateTextStream(
-        `请将以下文本翻译成中文，要保留换行符号，只需要返回翻译结果和换行符号，其他多余的一切不需要返回：\n\n${originalText}。`,
+        `请将以下文本翻译成${targetLanguage}，要保留换行符号，只需要返回翻译结果和换行符号，其他多余的一切不需要返回：\n\n${originalText}`,
         'gpt-4o-mini',
         (chunk) => {
             // 确保我们使用的是当前存在于DOM中的元素
@@ -88,7 +109,11 @@ export async function handleTranslationUpdate(
     selectedText: string,
     translation: string
 ): Promise<void> {
-    translationDiv.textContent = '正在翻译...';
+    // 获取用户当前语言设置
+    const locale = getLocaleFromCookie();
+    const loadingText = locale.startsWith('zh') ? '正在翻译...' : 'Translating...';
+    
+    translationDiv.textContent = loadingText;
     // const translation = await translationPromise;
     translationDiv.textContent = translation;
 
@@ -108,25 +133,30 @@ export async function handleExplanationStream(
     selectedText: string,
     fullParagraphText: string
 ): Promise<void> {
-    explanationDiv.innerHTML = '正在分析...';
+    // 获取用户当前语言设置
+    const locale = getLocaleFromCookie();
+    const targetLanguage = getTargetLanguageName(locale);
+    const analyzingText = locale.startsWith('zh') ? '正在分析...' : 'Analyzing...';
+    
+    explanationDiv.innerHTML = analyzingText;
     let explanation = '';
     let chunkCount = 0;
 
     await generateTextStream(
         `请严格按照以下格式回答，格式必须一致，不要添加任何多余内容：
 
-        1. 「${fullParagraphText}」这个句子里「${selectedText}」是什么意思？用中文一句话简要说明。如果是一个术语的话，那么稍微补充下相关知识，要求简单易懂不要太长。
+        1. 「${fullParagraphText}」这个句子里「${selectedText}」是什么意思？用${targetLanguage}一句话简要说明。如果是一个术语的话，那么稍微补充下相关知识，要求简单易懂不要太长。
 
         2. 如果「${selectedText}」还有其他与该上下文不同的常见含义，请用一句话列出。不需要写"其他含义"这几个字，直接写内容。如果没有，请省略这一项，不要输出这个条目。
 
         3. 如果「${selectedText}」是日语外来词，请说明其来源；如果不是，请省略这一项，不要输出这个条目。
 
-        输出时请只保留需要的条目，条目前务必不要带编号"1."、"2."、"3."，也不要添加其他说明或总结语句。输出时检查是否是用的中文，不是的话要用中文。
+        输出时请只保留需要的条目，条目前务必不要带编号"1."、"2."、"3."，也不要添加其他说明或总结语句。输出时检查是否是用的${targetLanguage}，不是的话要用${targetLanguage}。
         `,
         'gpt-4o',
         (chunk) => {
             if (explanationDiv && chunk) {
-                if (explanationDiv.innerHTML === '正在分析...') {
+                if (explanationDiv.innerHTML === analyzingText) {
                     explanationDiv.innerHTML = '';
                 }
                 explanationDiv.innerHTML += chunk;
@@ -173,7 +203,9 @@ export async function handleExplanationStream(
                 showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
             } else {
                 // 其他错误
-                showNotification(`分析失败: ${error?.message || '请稍后重试'}`, 'error');
+                const failedText = locale.startsWith('zh') ? '分析失败' : 'Analysis failed';
+                const retryText = locale.startsWith('zh') ? '请稍后重试' : 'Please try again later';
+                showNotification(`${failedText}: ${error?.message || retryText}`, 'error');
             }
 
             // 清空解释区域内容
@@ -217,8 +249,13 @@ export async function shouldTranslateAsFullParagraph(selectedText: string, parag
     if (findNextCharIsNewline(fullParagraphText, selectedText)) return true;
 
     try {
+        // 获取用户当前语言设置
+        const locale = getLocaleFromCookie();
+        const promptLanguage = locale.startsWith('zh') ? '如果你觉得它是单词或短语回答字符串"no"，如果你觉得它是句子中的段落，返回字符串"yes"' : 
+                              'If you think it is a word or phrase, answer with "no". If you think it is a paragraph in the sentence, answer with "yes"';
+
         const result = await generateText(`
-            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果你觉得它是单词或短语回答字符串"no"，如果你觉得它是句子中的段落，返回字符串"yes"。
+            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，${promptLanguage}。
         `);
 
         console.log(result, "result");
@@ -247,8 +284,11 @@ export async function shouldTranslateAsFullParagraph(selectedText: string, parag
         ) {
             showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
         } else {
-            // 其他错误
-            showNotification(`分析失败: ${error?.message || '请稍后重试'}`, 'error');
+            // 其他错误 - 需要重新获取locale
+            const locale = getLocaleFromCookie();
+            const failedText = locale.startsWith('zh') ? '分析失败' : 'Analysis failed';
+            const retryText = locale.startsWith('zh') ? '请稍后重试' : 'Please try again later';
+            showNotification(`${failedText}: ${error?.message || retryText}`, 'error');
         }
         
         // 出错时默认按单词处理
@@ -264,9 +304,14 @@ export async function shouldTranslateAsFullParagraph(selectedText: string, parag
  */
 export async function correctSelectedText(selectedText: string, fullParagraphText: string): Promise<string> {
     try {
+        // 获取用户当前语言设置
+        const locale = getLocaleFromCookie();
+        const promptLanguage = locale.startsWith('zh') ? 
+            '如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。' : 
+            'If this is a complete word or phrase, return it directly. If it is not a complete phrase, look at the surrounding text and correct it to a complete word or phrase. Make sure it is complete but not too long. Return only the corrected word or phrase without any additional content.';
+
         const correctedText = await generateText(`
-            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。
-            如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。
+            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，${promptLanguage}
         `);
 
         // 如果AI返回了有效的修正文本，则使用修正后的文本
@@ -301,8 +346,11 @@ export async function correctSelectedText(selectedText: string, fullParagraphTex
         ) {
             showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
         } else {
-            // 其他错误
-            showNotification(`翻译失败: ${error?.message || '未知错误'}`, 'error');
+            // 其他错误 - 需要重新获取locale
+            const locale = getLocaleFromCookie();
+            const failedText = locale.startsWith('zh') ? '翻译失败' : 'Translation failed';
+            const unknownErrorText = locale.startsWith('zh') ? '未知错误' : 'Unknown error';
+            showNotification(`${failedText}: ${error?.message || unknownErrorText}`, 'error');
         }
         
         // 在显示通知之后，返回原始选中文本

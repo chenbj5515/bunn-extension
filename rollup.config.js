@@ -85,7 +85,11 @@ const commonPlugins = [
     extract: path.resolve('dist/popup.css'),
     minimize: production,
   }),
-  production && terser(),
+  production && terser({
+    compress: {
+      drop_console: true,
+    },
+  }),
 ];
 
 // 在构建开始前准备HTML文件

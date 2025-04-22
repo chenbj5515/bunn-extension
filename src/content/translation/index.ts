@@ -33,6 +33,24 @@ import {
     handleHighlight
 } from './helpers/utils';
 
+import { getLocaleFromCookie } from '@/common/i18n';
+
+// 根据locale获取翻译目标语言名称
+function getTargetLanguageName(locale: string): string {
+    const languageMap: Record<string, string> = {
+        'zh': '中文',
+        'zh-TW': '繁體中文',
+        'en': 'English',
+        'ja': '日本語',
+        'ko': '한国语',
+        'es': 'Español',
+        'fr': 'Français',
+        'de': 'Deutsch'
+    };
+
+    return languageMap[locale] || 'English';
+}
+
 // 业务流程：翻译
 // 1 用户选中不理解的文本
 // 2 用户按下t键，触发handleTranslation函数
@@ -167,7 +185,14 @@ async function translateFullParagraph(targetNode: Element, originalText: string)
         await handlePlainTextTranslation(originalText, tempContainer);
     } catch (error) {
         console.error('翻译过程中出错:', error);
-        tempContainer.innerHTML = '翻译失败，请查看控制台获取详细错误信息';
+        
+        // 获取用户当前语言设置
+        const locale = getLocaleFromCookie();
+        const errorText = locale.startsWith('zh') ? 
+            '翻译失败，请查看控制台获取详细错误信息' : 
+            'Translation failed. Please check the console for detailed error information.';
+            
+        tempContainer.innerHTML = errorText;
     }
 }
 
@@ -213,7 +238,11 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
         originalDiv.appendChild(playButton);
 
         // 6. 发起翻译请求并处理结果
-        const translationPromise = generateText(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
+        // 获取用户当前语言设置
+        const locale = getLocaleFromCookie();
+        const targetLanguage = getTargetLanguageName(locale);
+        
+        const translationPromise = generateText(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成${targetLanguage}。要求你只输出「${selectedText}」对应的${targetLanguage}翻译结果就好，不要输出任何其他内容。`);
         const translation = await translationPromise;
         handleTranslationUpdate(translationDiv, originalText, selectedText, translation);
 
