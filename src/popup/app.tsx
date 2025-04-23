@@ -36,22 +36,22 @@ export interface User {
   email: string;
   image?: string;
   subscriptionActive: boolean;
-  expireAt: string | null;
+  expireTime: string | null;
 }
 
 export default function SettingsPage() {
   // 保存用户信息，若无法获取则为 null
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
+  // const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
   const [showSignIn, setShowSignIn] = useState(false)  // 新增状态控制是否显示登录页面
   const { t } = useTranslation();
 
   // 使用client调用新的/users/session接口
 
-  // const apiBaseUrl = process.env.API_BASE_URL;
-  const apiBaseUrl = "https://bunn.ink";
+  const apiBaseUrl = process.env.API_BASE_URL;
+  // const apiBaseUrl = "https://bunn.ink";
 
   useEffect(() => {
     fetch(`${apiBaseUrl}/api/user/session`, {
@@ -72,7 +72,7 @@ export default function SettingsPage() {
             email: user.email,
             image: user.image || undefined,
             subscriptionActive: subscription.active,
-            expireAt: subscription.expireAt
+            expireTime: subscription.expireTime
           };
 
           console.log(userData, "user data from session API");
@@ -99,11 +99,6 @@ export default function SettingsPage() {
   function handleBack() {
     setShowSignIn(false);  // 返回主设置页面
   }
-
-  // 点击"订阅引导"时，打开新的 tab 访问订阅引导页（替换下面的 URL）
-  // const handleSubscribeGuide = () => {
-  //   window.open("https://your-subscription-guide-url.com", "_blank")
-  // }
 
   if (loading) {
     return <Loading />

@@ -665,5 +665,13 @@
     "close": "Close",
     "initialMessage": "Analyzing the grammar structure and word usage of the original text, please wait...",
     "errorMessage": "Sorry, an error occurred while processing your request. Please try again later."
+  },
+  "userMenu": {
+    "membership": "Membership Plan",
+    "premium": "Premium",
+    "free": "Free",
+    "expiryDate": "Expiry Date",
+    "manageSubscription": "Manage Subscription",
+    "signOut": "Sign Out"
   }
 }

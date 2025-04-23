@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
-// import api from "@/utils/api"
 import { useTranslation } from "react-i18next"
 import "@/utils/i18n" // 导入i18n配置
 import api from "@/utils/api"

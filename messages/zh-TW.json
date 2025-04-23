@@ -621,5 +621,13 @@
         "enterDomainName": "請輸入網域名稱",
         "deleteMemoCard": "删除",
         "updateIcon": "更換圖標"
+    },
+    "userMenu": {
+        "membership": "會員計劃",
+        "premium": "Premium",
+        "free": "Free",
+        "expiryDate": "有效期限",
+        "manageSubscription": "訂閱管理",
+        "signOut": "退出登錄"
     }
 }

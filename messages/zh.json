@@ -670,5 +670,13 @@
         "close": "关闭",
         "initialMessage": "正在分析原文的语法结构和单词用法，请稍候...",
         "errorMessage": "很抱歉，处理您的请求时发生错误。请稍后再试。"
+    },
+    "userMenu": {
+        "membership": "会员计划",
+        "premium": "Premium",
+        "free": "Free",
+        "expiryDate": "有效期限",
+        "manageSubscription": "订阅管理",
+        "signOut": "退出登录"
     }
 }
