@@ -360,66 +360,62 @@ export function showNotificationWithAction(
 
   const notification = document.createElement('div');
   notification.className = 'netflix-subtitle-notification';
-  notification.classList.add(type);
   
-  // 设置通知样式为水平布局
+  // 设置通知样式为水平布局（黑白风格）
   notification.style.display = 'flex';
   notification.style.flexDirection = 'row'; // 水平布局
   notification.style.alignItems = 'center';
   notification.style.justifyContent = 'space-between'; // 内容两端对齐
-  notification.style.padding = '12px';
+  notification.style.padding = '0 12px';
   notification.style.minWidth = '300px'; // 设置最小宽度，确保有足够空间
+  notification.style.height = '48px'; // 固定高度为48px
+  notification.style.backgroundColor = '#FFFFFF';
+  notification.style.color = '#000000';
+  notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+  notification.style.borderRadius = '4px';
+  // 移除左边框样式，不使用warning类
   
   // 创建消息容器，它将包含图标和文本
   const messageContainer = document.createElement('div');
   messageContainer.style.display = 'flex';
   messageContainer.style.alignItems = 'center';
-  messageContainer.style.marginRight = '16px'; // 与按钮保持间距
-  messageContainer.style.flex = '1'; // 让消息容器占据剩余空间
+  messageContainer.style.marginRight = '6px'; // 与按钮保持间距
+  messageContainer.style.flex = '1';
   
-  // 根据类型添加不同的图标
-  if (type === 'error') {
-    const icon = document.createElement('span');
-    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
-    icon.className = 'notification-icon';
-    icon.style.height = '100%';
-    icon.style.display = 'flex';
-    icon.style.alignItems = 'center';
-    icon.style.marginRight = '8px'; // 图标与文本的间距
-    messageContainer.appendChild(icon);
-  } else if (type === 'warning') {
-    const icon = document.createElement('span');
-    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
-    icon.className = 'notification-icon';
-    icon.style.height = '100%';
-    icon.style.display = 'flex';
-    icon.style.alignItems = 'center';
-    icon.style.marginRight = '8px'; // 图标与文本的间距
-    messageContainer.appendChild(icon);
-  }
-  
-  // 添加消息文本
+  // 添加消息文本（不包含图标）
   const messageSpan = document.createElement('span');
   messageSpan.innerHTML = message;
   messageSpan.style.height = '100%';
   messageSpan.style.display = 'flex';
   messageSpan.style.alignItems = 'center';
+  messageSpan.style.fontSize = '15px'; // 调整文字大小为15px
   messageContainer.appendChild(messageSpan);
   
   notification.appendChild(messageContainer);
   
-  // 创建按钮
+  // 创建按钮（黑白风格）
   const button = document.createElement('button');
   button.textContent = buttonText;
-  button.style.padding = '4px 12px';
+  button.style.padding = '8px 12px'; // 调整按钮内边距为8px 12px
   button.style.borderRadius = '4px';
-  button.style.backgroundColor = '#3B82F6';
-  button.style.color = 'white';
+  button.style.backgroundColor = '#000000';
+  button.style.color = '#FFFFFF';
   button.style.border = 'none';
   button.style.cursor = 'pointer';
-  button.style.fontWeight = 'bold';
+  button.style.fontWeight = '500'; // 稍微降低字体粗细
+  button.style.fontSize = '13px'; // 字体大小
   button.style.whiteSpace = 'nowrap'; // 防止按钮文本换行
   button.style.flexShrink = '0'; // 防止按钮被压缩
+  button.style.transition = 'opacity 0.2s ease'; // 添加过渡效果
+  
+  // 添加按钮hover效果
+  button.addEventListener('mouseenter', () => {
+    button.style.opacity = '0.8';
+  });
+  
+  button.addEventListener('mouseleave', () => {
+    button.style.opacity = '1';
+  });
   
   // 添加按钮点击事件
   button.onclick = (e) => {
