@@ -333,11 +333,34 @@ export function showNotificationWithLink(
   // 触发动画
   setTimeout(() => notification.classList.add('show'), 10);
   
+  // 添加点击外部关闭功能
+  const closeNotificationOnOutsideClick = (e: MouseEvent) => {
+    // 检查点击是否发生在通知框外部
+    if (notification && !notification.contains(e.target as Node)) {
+      // 点击发生在通知框外部，关闭通知框
+      notification.classList.remove('show');
+      setTimeout(() => {
+        notification.remove();
+        // 移除事件监听器
+        document.removeEventListener('click', closeNotificationOnOutsideClick);
+      }, 300);
+    }
+  };
+  
+  // 防止刚添加通知时立即触发点击事件
+  setTimeout(() => {
+    document.addEventListener('click', closeNotificationOnOutsideClick);
+  }, 100);
+  
   // 设置自动消失 (根据autoHide参数)
   if (autoHide && type !== 'loading') {
     setTimeout(() => {
       notification.classList.remove('show');
-      setTimeout(() => notification.remove(), 300);
+      setTimeout(() => {
+        notification.remove();
+        // 移除事件监听器
+        document.removeEventListener('click', closeNotificationOnOutsideClick);
+      }, 300);
     }, 5000); // 5秒后自动消失
   }
   
