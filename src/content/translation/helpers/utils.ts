@@ -14,8 +14,8 @@ export async function copyToClipboard(text: string) {
     try {
         await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
         console.log('成功复制到剪贴板:', data);
-        // 使用showNotificationWithLink函数替代showNotification函数
-        showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true);
+        // 使用showNotificationWithLink函数并传入false作为autoHide参数，使弹窗不会自动消失
+        showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true, false);
     } catch (err) {
         console.error('复制到剪贴板失败:', err);
         showNotification('复制失败，请重试。');

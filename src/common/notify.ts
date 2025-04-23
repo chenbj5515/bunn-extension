@@ -216,6 +216,7 @@ export function showNotificationWithLink(
   type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
   linkUrl: string = 'https://www.bunn.ink',
   isTranslationKey: boolean = false,
+  autoHide: boolean = true,
   ...args: any[]
 ) {
   if (!document.body) return; // 确保document.body存在
@@ -241,6 +242,7 @@ export function showNotificationWithLink(
   notification.style.height = '48px'; // 设置高度为48px
   notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'; // 添加阴影效果
   notification.style.borderRadius = '4px'; // 圆角边框
+  notification.style.width = '482px'; // 固定宽度为482px
   
   // 对于成功类型不添加success类名，避免显示绿色边框
   if (type !== 'success') {
@@ -255,7 +257,6 @@ export function showNotificationWithLink(
       cursor: pointer;
       transition: opacity 0.2s ease;
       color: #000000; /* 使用黑色作为链接颜色，保持黑白调性 */
-      font-weight: 500;
       padding: 0 2px;
       margin: 0 3px;
       display: inline;
@@ -274,7 +275,7 @@ export function showNotificationWithLink(
     icon.style.height = '100%';
     icon.style.display = 'flex';
     icon.style.alignItems = 'center';
-    icon.style.marginRight = '8px';
+    // 移除右边距
     notification.appendChild(icon);
   } else if (type === 'loading') {
     const spinner = document.createElement('div');
@@ -332,12 +333,12 @@ export function showNotificationWithLink(
   // 触发动画
   setTimeout(() => notification.classList.add('show'), 10);
   
-  // 设置自动消失
-  if (type !== 'loading') {
+  // 设置自动消失 (根据autoHide参数)
+  if (autoHide && type !== 'loading') {
     setTimeout(() => {
       notification.classList.remove('show');
       setTimeout(() => notification.remove(), 300);
-    }, 5000); // 增加到5秒，让用户有更多时间看到消息
+    }, 5000); // 5秒后自动消失
   }
   
   return notification;
