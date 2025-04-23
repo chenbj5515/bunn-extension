@@ -1,4 +1,4 @@
-import { showNotification } from '@/common/notify';
+import { showNotification, showNotificationWithLink } from '@/common/notify';
 // import { API_BASE_URL } from "@/utils/api";
 
 // 将选中文本复制到剪贴板
@@ -14,9 +14,8 @@ export async function copyToClipboard(text: string) {
     try {
         await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
         console.log('成功复制到剪贴板:', data);
-        // 创建带有Bunn链接的通知
-        const successMessage = '复制成功！请将内容粘贴到<a href="https://www.bunn.ink/zh/memo-cards" target="_blank" style="text-decoration:underline;color:inherit;">Bunn</a>应用中以保存和复习。';
-        showNotification(successMessage);
+        // 使用showNotificationWithLink函数替代showNotification函数
+        showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true);
     } catch (err) {
         console.error('复制到剪贴板失败:', err);
         showNotification('复制失败，请重试。');

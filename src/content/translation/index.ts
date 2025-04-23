@@ -96,10 +96,10 @@ export async function initializeTranslation() {
                 handleTranslation(e);
             }
 
-            // 用户选中文本后按下Alt键，会被识别为复制事件
+            // 用户选中文本后按下Ctrl键，会被识别为复制事件
             // 复制事件会调用copyToClipboard函数，不同于普通的COPY，这里会把JSON复制到剪贴板
             // JSON中不仅包括选中文本，并且还有URL参数和滚动位置信息，这些信息会用于恢复选中文本的位置
-            if (e.key === 'Alt') {
+            if (e.key === 'Control') {
                 handleCopy(e);
             }
         }, true);

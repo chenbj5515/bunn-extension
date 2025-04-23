@@ -237,7 +237,10 @@ export function showNotificationWithLink(
   notification.style.color = '#000000'; // 文字使用黑色
   notification.style.display = 'flex';
   notification.style.alignItems = 'center';
-  notification.style.height = '24px'; // 减小高度
+  notification.style.padding = '0 12px'; // 添加水平内边距
+  notification.style.height = '48px'; // 设置高度为48px
+  notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'; // 添加阴影效果
+  notification.style.borderRadius = '4px'; // 圆角边框
   
   // 对于成功类型不添加success类名，避免显示绿色边框
   if (type !== 'success') {
@@ -312,6 +315,7 @@ export function showNotificationWithLink(
   messageSpan.style.height = '100%';
   messageSpan.style.display = 'flex';
   messageSpan.style.alignItems = 'center';
+  messageSpan.style.fontSize = '15px'; // 添加与字幕相同的字体大小
   notification.appendChild(messageSpan);
   
   document.body.appendChild(notification);
