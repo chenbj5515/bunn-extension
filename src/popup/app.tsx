@@ -50,8 +50,9 @@ export default function SettingsPage() {
 
   // 使用client调用新的/users/session接口
 
-  const apiBaseUrl = process.env.API_BASE_URL;
-  // const apiBaseUrl = "https://bunn.ink";
+  // const apiBaseUrl = process.env.API_BASE_URL;
+  const apiBaseUrl = "https://www.bunn.ink";
+  // const apiBaseUrl = "https://bunn-web.vercel.app";
 
   useEffect(() => {
     fetch(`${apiBaseUrl}/api/user/session`, {

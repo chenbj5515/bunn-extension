@@ -1,7 +1,7 @@
 import { getTranslation } from './i18n';
 
 // 显示通知
-export function showNotification(
+export async function showNotification(
   messageOrKey: string, 
   type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
   isTranslationKey: boolean = false,
@@ -10,7 +10,7 @@ export function showNotification(
     if (!document.body) return; // 确保document.body存在
   
     // 获取要显示的消息文本
-    const message = isTranslationKey ? getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
+    const message = isTranslationKey ? await getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
 
     // 清除所有现有通知，确保不会有多个通知同时显示
     clearAllNotifications();
@@ -20,10 +20,20 @@ export function showNotification(
     // 设置通知为flex布局以确保内容垂直居中
     notification.style.display = 'flex';
     notification.style.alignItems = 'center';
-  
-    // 根据类型添加不同的样式
-    notification.classList.add(type);
     
+    // 设置白底黑字风格
+    notification.style.backgroundColor = '#FFFFFF';
+    notification.style.color = '#000000';
+    
+    // 设置最小高度为36px
+    notification.style.minHeight = '36px';
+    
+    // 添加其他样式
+    notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+    notification.style.borderRadius = '4px';
+    notification.style.padding = '0 12px';
+  
+    // 根据类型添加不同的图标
     if (type === 'loading') {
       const spinner = document.createElement('div');
       spinner.className = 'spinner';
@@ -37,6 +47,7 @@ export function showNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       notification.appendChild(icon);
     } else if (type === 'warning') {
       const icon = document.createElement('span');
@@ -47,6 +58,7 @@ export function showNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       notification.appendChild(icon);
     } else if (type === 'success') {
       const icon = document.createElement('span');
@@ -68,6 +80,7 @@ export function showNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       notification.appendChild(icon);
     }
   
@@ -98,7 +111,7 @@ export function showNotification(
     
     notification.addEventListener('mouseleave', () => {
       isHovering = false;
-      // 鼠标离开后开始倒计时关闭 - 暂时禁用自动消失功能用于调试
+      // 鼠标离开后开始倒计时关闭
       startHideTimer();
     });
     
@@ -112,7 +125,7 @@ export function showNotification(
       }
     };
     
-    // 恢复自动消失功能
+    // 自动消失功能
     if (type !== 'loading') {
       startHideTimer();
     }
@@ -121,21 +134,31 @@ export function showNotification(
 }
 
 // 更新现有通知
-export function updateNotification(
+export async function updateNotification(
   messageOrKey: string, 
   type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
   isTranslationKey: boolean = false,
   ...args: any[]
 ) {
   // 获取要显示的消息文本
-  const message = isTranslationKey ? getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
+  const message = isTranslationKey ? await getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
   
   const existingNotification = document.querySelector('.netflix-subtitle-notification');
   if (existingNotification) {
     // 移除旧的所有类型
     existingNotification.classList.remove('info', 'error', 'warning', 'loading', 'success');
-    // 添加新类型
-    existingNotification.classList.add(type);
+    
+    // 设置白底黑字风格
+    (existingNotification as HTMLElement).style.backgroundColor = '#FFFFFF';
+    (existingNotification as HTMLElement).style.color = '#000000';
+    
+    // 设置最小高度为36px
+    (existingNotification as HTMLElement).style.minHeight = '36px';
+    
+    // 添加其他样式
+    (existingNotification as HTMLElement).style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+    (existingNotification as HTMLElement).style.borderRadius = '4px';
+    (existingNotification as HTMLElement).style.padding = '0 12px';
     
     // 清空通知内容
     existingNotification.innerHTML = '';
@@ -152,6 +175,7 @@ export function updateNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       existingNotification.appendChild(icon);
     } else if (type === 'warning') {
       const icon = document.createElement('span');
@@ -160,6 +184,7 @@ export function updateNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       existingNotification.appendChild(icon);
     } else if (type === 'success') {
       const icon = document.createElement('span');
@@ -168,6 +193,7 @@ export function updateNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       existingNotification.appendChild(icon);
     } else { // info
       const icon = document.createElement('span');
@@ -176,6 +202,7 @@ export function updateNotification(
       icon.style.height = '100%';
       icon.style.display = 'flex';
       icon.style.alignItems = 'center';
+      icon.style.marginRight = '8px';
       existingNotification.appendChild(icon);
     }
     
@@ -211,7 +238,7 @@ function clearAllNotifications() {
 }
 
 // 显示带有可点击链接的通知
-export function showNotificationWithLink(
+export async function showNotificationWithLink(
   messageOrKey: string, 
   type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
   linkUrl: string = 'https://www.bunn.ink',
@@ -222,7 +249,7 @@ export function showNotificationWithLink(
   if (!document.body) return; // 确保document.body存在
   
   // 获取要显示的消息文本
-  let message = isTranslationKey ? getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
+  let message = isTranslationKey ? await getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
   
   // 替换_Bunn_，确保其周围有足够空白
   message = message.replace(/_Bunn_/g, '  <span class="bunn-link">Bunn</span>  ');
@@ -239,15 +266,10 @@ export function showNotificationWithLink(
   notification.style.display = 'flex';
   notification.style.alignItems = 'center';
   notification.style.padding = '0 12px'; // 添加水平内边距
-  notification.style.height = '48px'; // 设置高度为48px
+  notification.style.minHeight = '36px'; // 设置最小高度为36px
   notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'; // 添加阴影效果
   notification.style.borderRadius = '4px'; // 圆角边框
   notification.style.width = '482px'; // 固定宽度为482px
-  
-  // 对于成功类型不添加success类名，避免显示绿色边框
-  if (type !== 'success') {
-    notification.classList.add(type);
-  }
   
   // 添加链接样式
   const linkStyle = document.createElement('style');
@@ -275,7 +297,7 @@ export function showNotificationWithLink(
     icon.style.height = '100%';
     icon.style.display = 'flex';
     icon.style.alignItems = 'center';
-    // 移除右边距
+    icon.style.marginRight = '8px';
     notification.appendChild(icon);
   } else if (type === 'loading') {
     const spinner = document.createElement('div');
@@ -368,7 +390,7 @@ export function showNotificationWithLink(
 }
 
 // 显示带有按钮的通知
-export function showNotificationWithAction(
+export async function showNotificationWithAction(
   messageOrKey: string, 
   type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
   actionText: string,
@@ -379,9 +401,9 @@ export function showNotificationWithAction(
   if (!document.body) return; // 确保document.body存在
   
   // 获取要显示的消息文本
-  const message = isTranslationKey ? getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
+  const message = isTranslationKey ? await getTranslation(messageOrKey, undefined, ...args) : messageOrKey;
   // 获取按钮文本（支持国际化）
-  const buttonText = isTranslationKey ? getTranslation(actionText, undefined, ...args) : actionText;
+  const buttonText = isTranslationKey ? await getTranslation(actionText, undefined, ...args) : actionText;
 
   // 清除所有现有通知，确保不会有多个通知同时显示
   clearAllNotifications();
@@ -396,7 +418,7 @@ export function showNotificationWithAction(
   notification.style.justifyContent = 'space-between'; // 内容两端对齐
   notification.style.padding = '0 12px';
   notification.style.minWidth = '300px'; // 设置最小宽度，确保有足够空间
-  notification.style.height = '48px'; // 固定高度为48px
+  notification.style.minHeight = '36px'; // 设置最小高度为36px
   notification.style.backgroundColor = '#FFFFFF';
   notification.style.color = '#000000';
   notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';

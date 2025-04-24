@@ -31,7 +31,7 @@ export default function SubscriptionPrompt(props: { apiKeySetted?: boolean }) {
                     <div className="flex items-center text-muted-foreground text-sm text-center">
                         {t('subscription.learnMore')}
                         <a
-                            href="https://bunn.ink/"
+                            href="https://www.bunn.ink/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="ml-[2px] text-primary hover:text-muted-foreground underline underline-offset-4"

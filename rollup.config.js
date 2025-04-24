@@ -23,7 +23,7 @@ const target = process.env.TARGET; // 可能的值: popup, content, background
 
 // 根据环境变量设置API基础URL
 const apiBaseUrl = production
-  ? 'https://bunn.ink'
+  ? 'https://www.bunn.ink'
   : 'http://localhost:3000';
 
 // 从.env文件加载环境变量
@@ -87,7 +87,7 @@ const commonPlugins = [
   }),
   production && terser({
     compress: {
-      drop_console: true,
+      drop_console: false,
     },
   }),
 ];

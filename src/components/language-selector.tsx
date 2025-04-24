@@ -1,17 +1,18 @@
 "use client"
 import * as React from "react"
 import { Globe } from "lucide-react"
-import Cookies from 'js-cookie';
 import { changeLanguage, getCurrentLanguage } from "@/utils/i18n";
+import { setLocaleCookie } from "@/common/i18n"; // 导入 setLocaleCookie 函数
 
 export function LanguageSelector() {
     const [isOpen, setIsOpen] = React.useState(false)
     const [locale, setLocale] = React.useState(getCurrentLanguage() || 'zh'); // 使用getCurrentLanguage获取当前语言
     const containerRef = React.useRef<HTMLDivElement>(null)
 
-    const handleLanguageChange = (value: string) => {
+    const handleLanguageChange = async (value: string) => {
         setLocale(value); // 更新locale状态
         changeLanguage(value); // 使用i18n中定义的changeLanguage函数
+        await setLocaleCookie(value); // 异步调用 setLocaleCookie 更新 cookie
         setIsOpen(false);
     }
 

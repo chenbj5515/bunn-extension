@@ -187,7 +187,7 @@ async function translateFullParagraph(targetNode: Element, originalText: string)
         console.error('翻译过程中出错:', error);
         
         // 获取用户当前语言设置
-        const locale = getLocaleFromCookie();
+        const locale = await getLocaleFromCookie();
         const errorText = locale.startsWith('zh') ? 
             '翻译失败，请查看控制台获取详细错误信息' : 
             'Translation failed. Please check the console for detailed error information.';
@@ -239,7 +239,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
 
         // 6. 发起翻译请求并处理结果
         // 获取用户当前语言设置
-        const locale = getLocaleFromCookie();
+        const locale = await getLocaleFromCookie();
         const targetLanguage = getTargetLanguageName(locale);
         
         const translationPromise = generateText(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成${targetLanguage}。要求你只输出「${selectedText}」对应的${targetLanguage}翻译结果就好，不要输出任何其他内容。`);

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -55,7 +54,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <DropdownMenu>
-        < DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none" >
+        <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none" >
           <Avatar className="w-10 h-10 cursor-pointer">
             <AvatarImage src={`${process.env.API_BASE_URL}${user.image}`} />
             <AvatarFallback>Name</AvatarFallback>

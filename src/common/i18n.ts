@@ -1,23 +1,49 @@
-// 从cookie中获取locale
-export function getLocaleFromCookie(): string {
-  const cookies = document.cookie.split(';');
-  let locale = 'en'; // 默认英语
-  
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'locale') {
-      locale = value;
-      break;
-    }
+// 从 localhost:3000 获取 NEXT_LOCALE cookie
+export async function getLocaleFromCookie(): Promise<string> {
+  try {
+    // 直接向后台发送消息获取 Cookie
+    return await new Promise<string>((resolve) => {
+      chrome.runtime.sendMessage(
+        { action: 'GET_LOCALE_COOKIE' },
+        (response) => {
+          // 如果有响应且包含 locale，则使用该值
+          if (response && response.locale) {
+            resolve(response.locale);
+          } else {
+            resolve('en'); // 默认使用英语
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.error('获取 locale cookie 失败:', error);
+    return 'en'; // 出错时返回默认值
   }
-  
-  // 支持的语言列表，如果不在支持列表中，则使用默认值
-  const supportedLocales = ['en', 'zh', 'ja', 'ko', 'es', 'fr', 'de'];
+}
+
+// 设置语言 cookie
+export async function setLocaleCookie(locale: string): Promise<boolean> {
+  // 支持的语言列表
+  const supportedLocales = ['en', 'zh', 'zh-TW', 'ja', 'ko', 'es', 'fr', 'de'];
   if (!supportedLocales.includes(locale)) {
-    locale = 'en';
+    console.warn(`不支持的语言: ${locale}`);
+    return false;
   }
-  
-  return locale;
+
+  try {
+    // 直接向后台发送消息设置 Cookie
+    return await new Promise<boolean>((resolve) => {
+      chrome.runtime.sendMessage(
+        { action: 'SET_LOCALE_COOKIE', locale },
+        (response) => {
+          resolve(response && response.success === true);
+        }
+      );
+    });
+  } catch (error) {
+    console.error('设置 locale cookie 失败:', error);
+    return false;
+  }
 }
 
 // 通知文案
@@ -203,13 +229,50 @@ export const notificationMessages: NotificationTranslations = {
     'es': 'Actualizar',
     'fr': 'Améliorer',
     'de': 'Upgrade'
+  },
+  // 翻译相关错误信息
+  'translation.failed': {
+    'en': 'Translation failed: {0}',
+    'zh': '翻译失败: {0}',
+    'ja': '翻訳に失敗しました: {0}',
+    'ko': '번역 실패: {0}',
+    'es': 'Traducción fallida: {0}',
+    'fr': 'Échec de la traduction: {0}',
+    'de': 'Übersetzung fehlgeschlagen: {0}'
+  },
+  'analysis.failed': {
+    'en': 'Analysis failed: {0}',
+    'zh': '分析失败: {0}',
+    'ja': '分析に失敗しました: {0}',
+    'ko': '분석 실패: {0}',
+    'es': 'Análisis fallido: {0}',
+    'fr': 'Échec de l\'analyse: {0}',
+    'de': 'Analyse fehlgeschlagen: {0}'
+  },
+  'translating.text': {
+    'en': 'Translating...',
+    'zh': '正在翻译...',
+    'ja': '翻訳中...',
+    'ko': '번역 중...',
+    'es': 'Traduciendo...',
+    'fr': 'Traduction en cours...',
+    'de': 'Übersetze...'
+  },
+  'analyzing.text': {
+    'en': 'Analyzing...',
+    'zh': '正在分析...',
+    'ja': '分析中...',
+    'ko': '분석 중...',
+    'es': 'Analizando...',
+    'fr': 'Analyse en cours...',
+    'de': 'Analysiere...'
   }
 };
 
 // 获取翻译文本，支持参数替换
-export function getTranslation(key: string, locale?: string, ...args: any[]): string {
+export async function getTranslation(key: string, locale?: string, ...args: any[]): Promise<string> {
   // 获取locale，如果没有提供则从cookie中获取
-  const currentLocale = locale || getLocaleFromCookie();
+  const currentLocale = locale || await getLocaleFromCookie();
   
   // 获取翻译文本
   const translations = notificationMessages[key];
@@ -219,6 +282,27 @@ export function getTranslation(key: string, locale?: string, ...args: any[]): st
   }
   
   let message = translations[currentLocale] || translations['en']; // 如果没有对应语言，使用英语
+  
+  // 替换参数 {0}, {1}, ...
+  if (args.length > 0) {
+    args.forEach((arg, index) => {
+      message = message.replace(`{${index}}`, String(arg));
+    });
+  }
+  
+  return message;
+}
+
+// 同步获取翻译，适用于已知语言环境的情况
+export function getTranslationSync(key: string, locale: string, ...args: any[]): string {
+  // 获取翻译文本
+  const translations = notificationMessages[key];
+  if (!translations) {
+    console.warn(`Translation key not found: ${key}`);
+    return key;
+  }
+  
+  let message = translations[locale] || translations['en']; // 如果没有对应语言，使用英语
   
   // 替换参数 {0}, {1}, ...
   if (args.length > 0) {

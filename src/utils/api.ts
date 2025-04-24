@@ -14,7 +14,9 @@ declare module 'axios' {
 const getBaseUrl = (): string => {
   
   const isDevelopment = process.env.NODE_ENV === 'development';
-  return isDevelopment ? 'http://localhost:3000' : 'https://bunn.ink';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+  // return isDevelopment ? 'http://localhost:3000' : 'https://bunn-web.vercel.app';
+
 };
 
 // 创建配置好的axios实例

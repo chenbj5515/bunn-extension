@@ -31,7 +31,7 @@ export default function UsageGuide() {
             </div>
             <div className="text-[14px] text-muted-foreground">
               {t('usageGuide.shortcuts.option.textPrefix')}
-              <a href="https://bunn.ink/" target="_blank" className="mx-1 hover:text-primary underline underline-offset-4">Bunn</a>
+              <a href="https://www.bunn.ink/" target="_blank" className="mx-1 hover:text-primary underline underline-offset-4">Bunn</a>
               {t('usageGuide.shortcuts.option.textSuffix')}
             </div>
           </div>
