@@ -4,6 +4,12 @@ import { ArrowRight, Star } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import "../i18n" // 导入i18n配置
 
+// 添加获取baseUrl的函数
+function getBaseUrl(): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 export default function SubscriptionPrompt(props: { apiKeySetted?: boolean }) {
     const { apiKeySetted } = props;
     const { t } = useTranslation();
@@ -23,7 +29,7 @@ export default function SubscriptionPrompt(props: { apiKeySetted?: boolean }) {
                 <div className="flex flex-col gap-4">
                     <Button 
                         className="group flex justify-center items-center gap-2 transition-all duration-300 ease-in-out"
-                        onClick={() => window.open('https://www.bunn.ink/pricing', '_blank')}
+                        onClick={() => window.open(`${getBaseUrl()}/pricing`, '_blank')}
                     >
                         {t('subscription.subscribeNow')}
                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 duration-300 ease-in-out" />
@@ -31,7 +37,7 @@ export default function SubscriptionPrompt(props: { apiKeySetted?: boolean }) {
                     <div className="flex items-center text-muted-foreground text-sm text-center">
                         {t('subscription.learnMore')}
                         <a
-                            href="https://www.bunn.ink/"
+                            href={getBaseUrl()}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="ml-[2px] text-primary hover:text-muted-foreground underline underline-offset-4"

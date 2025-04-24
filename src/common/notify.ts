@@ -1,5 +1,11 @@
 import { getTranslation } from './i18n';
 
+// 获取baseUrl的函数
+function getBaseUrl(): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 // 显示通知
 export async function showNotification(
   messageOrKey: string, 
@@ -241,7 +247,7 @@ function clearAllNotifications() {
 export async function showNotificationWithLink(
   messageOrKey: string, 
   type: 'info' | 'error' | 'warning' | 'loading' | 'success' = 'info',
-  linkUrl: string = 'https://www.bunn.ink',
+  linkUrl: string = getBaseUrl(),
   isTranslationKey: boolean = false,
   autoHide: boolean = true,
   ...args: any[]

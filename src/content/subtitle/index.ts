@@ -11,6 +11,12 @@ import {
 } from './helpers';
 import { showNotification, updateNotification, showNotificationWithLink } from '@/common/notify';
 
+// 获取baseUrl的函数
+function getBaseUrl(): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 // 业务流程：在Youtube上获取字幕和影子跟读
 // 1 用户打开一个含有内置字幕的Youtube视频（比如：https://www.youtube.com/watch?v=QrwxVi9hWJg&t=374s）
 // 2 用户遇到不懂的句子，按下ctrl + c键，触发handleCopySubtitle函数
@@ -120,7 +126,7 @@ async function handleCopySubtitle(e: KeyboardEvent) {
         episodeTitle
       }))
         .then(() => {
-          showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true);
+          showNotificationWithLink('subtitle.copied.with.ctrl', 'success', getBaseUrl(), true);
           console.log('Copied Netflix subtitles:', subtitleData);
           updateLastCopiedTime(lastSubtitle.startTime);
         })

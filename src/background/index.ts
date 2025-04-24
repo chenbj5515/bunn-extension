@@ -2,12 +2,17 @@ import { handleExtractSubtitles } from "./handle-extract-subtitles";
 import { handleGenerateText } from "./handle-generate-text";
 import { handleGenerateTextStream } from "./handle-generate-text-stream";
 
+// 获取baseUrl的函数
+function getBaseUrl(): string {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 // 获取当前语言环境 - 直接从 cookie 读取，而不是调用 i18n.ts 中的函数
 async function getLocale(): Promise<string> {
     return new Promise((resolve) => {
         chrome.cookies.get({
-            // url: 'http://localhost:3000',
-            url: 'https://www.bunn.ink',
+            url: getBaseUrl(),
             name: 'NEXT_LOCALE'
         }, (cookie) => {
             if (cookie) {
@@ -23,8 +28,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 处理获取 locale cookie 的请求
     if (message.action === 'GET_LOCALE_COOKIE') {
         chrome.cookies.get({
-            // url: 'http://localhost:3000', 
-            url: 'https://www.bunn.ink',
+            url: getBaseUrl(),
             name: 'NEXT_LOCALE'
         }, (cookie) => {
             if (cookie) {
@@ -39,8 +43,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 处理设置 locale cookie 的请求
     if (message.action === 'SET_LOCALE_COOKIE') {
         chrome.cookies.set({
-            // url: 'http://localhost:3000',
-            url: 'https://www.bunn.ink',
+            url: getBaseUrl(),
             name: 'NEXT_LOCALE',
             value: message.locale,
             path: '/'

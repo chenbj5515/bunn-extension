@@ -5,6 +5,12 @@ import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/u
 import { isEntireParagraphSelected } from './dom-helpers';
 import { getLocaleFromCookie, getTranslation } from '@/common/i18n';
 
+// 添加获取baseUrl的函数
+function getBaseUrl(): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 // 根据locale获取翻译目标语言名称
 function getTargetLanguageName(locale: string): string {
     const languageMap: Record<string, string> = {
@@ -66,9 +72,7 @@ export async function handlePlainTextTranslation(
             console.log('翻译错误:', error);
             
             // 获取升级URL
-            const upgradeUrl = process.env.API_BASE_URL ? 
-                `${process.env.API_BASE_URL}/pricing` : 
-                'https://www.bunn.ink/pricing';
+            const upgradeUrl = `${getBaseUrl()}/pricing`;
             
             // 简化错误检测逻辑
             // 检查错误信息是否包含token限制关键词或错误码
@@ -181,9 +185,7 @@ export async function handleExplanationStream(
             console.log('解析错误:', error);
             
             // 获取升级URL
-            const upgradeUrl = process.env.API_BASE_URL ? 
-                `${process.env.API_BASE_URL}/pricing` : 
-                'https://www.bunn.ink/pricing';
+            const upgradeUrl = `${getBaseUrl()}/pricing`;
             
             // 简化错误检测逻辑
             // 检查错误信息是否包含token限制关键词或错误码
@@ -261,9 +263,7 @@ export async function shouldTranslateAsFullParagraph(selectedText: string, parag
         console.error('判断是否整段翻译失败:', error);
         
         // 获取升级URL
-        const upgradeUrl = process.env.API_BASE_URL ? 
-            `${process.env.API_BASE_URL}/pricing` : 
-            'https://www.bunn.ink/pricing';
+        const upgradeUrl = `${getBaseUrl()}/pricing`;
         
         // 简化错误检测逻辑
         // 检查错误信息是否包含token限制关键词或错误码
@@ -320,9 +320,7 @@ export async function correctSelectedText(selectedText: string, fullParagraphTex
         console.error('AI修正文本失败:', error);
 
         // 获取升级URL
-        const upgradeUrl = process.env.API_BASE_URL ? 
-            `${process.env.API_BASE_URL}/pricing` : 
-            'https://www.bunn.ink/pricing';
+        const upgradeUrl = `${getBaseUrl()}/pricing`;
         
         // 简化错误检测逻辑
         // 检查错误信息是否包含token限制关键词或错误码

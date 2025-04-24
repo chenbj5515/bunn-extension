@@ -1,6 +1,12 @@
 import { showNotification, showNotificationWithLink } from '@/common/notify';
 // import { API_BASE_URL } from "@/utils/api";
 
+// 添加获取baseUrl的函数
+function getBaseUrl(): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 // 将选中文本复制到剪贴板
 export async function copyToClipboard(text: string) {
     const url = new URL(window.location.href);
@@ -15,7 +21,7 @@ export async function copyToClipboard(text: string) {
         await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
         console.log('成功复制到剪贴板:', data);
         // 使用showNotificationWithLink函数并传入false作为autoHide参数，使弹窗不会自动消失
-        showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true, false);
+        showNotificationWithLink('subtitle.copied.with.ctrl', 'success', getBaseUrl(), true, false);
     } catch (err) {
         console.error('复制到剪贴板失败:', err);
         showNotification('复制失败，请重试。');

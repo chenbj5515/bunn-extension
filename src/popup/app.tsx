@@ -39,6 +39,12 @@ export interface User {
   expireTime: string | null;
 }
 
+// 获取baseUrl的函数
+function getBaseUrl(): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? 'http://localhost:3000' : 'https://www.bunn.ink';
+}
+
 export default function SettingsPage() {
   // 保存用户信息，若无法获取则为 null
   const [user, setUser] = useState<User | null>(null)
@@ -49,10 +55,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
 
   // 使用client调用新的/users/session接口
-
-  // const apiBaseUrl = process.env.API_BASE_URL;
-  const apiBaseUrl = "https://www.bunn.ink";
-  // const apiBaseUrl = "https://bunn-web.vercel.app";
+  const apiBaseUrl = getBaseUrl();
 
   useEffect(() => {
     fetch(`${apiBaseUrl}/api/user/session`, {
