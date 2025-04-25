@@ -1,4 +1,4 @@
-import { showNotification, updateNotification, showNotificationWithAction, showNotificationWithLink } from '@/common/notify';
+import { showNotification, updateNotification, showNotificationWithAction, showNotificationWithLink, hideNotification as importedHideNotification } from '@/common/notify';
 
 // 全局变量
 export let lastSubtitle = { text: '', startTime: 0 };
@@ -7,76 +7,16 @@ export let isYouTube = window.location.hostname.includes('youtube.com');
 export let isRequestInProgress = false; // 标记是否有请求正在进行中
 export let lastCopiedTime: number | null = null; // 记录上次ctrl+c指令的时间
 
-// 创建并添加通知元素样式
+// 创建并添加通知元素样式 - 已移至common/notify.ts全局样式定义，此函数不再需要
 export function addNotificationStyle() {
-  if (!document.head) return; // 确保document.head存在
-
-  const style = document.createElement('style');
-  style.textContent = `
-        .netflix-subtitle-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #FFFFFF;
-            color: #000000;
-            padding: 12px 24px;
-            border-radius: 4px;
-            z-index: 9999;
-            font-size: 14px;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            height: 24px; /* 减小高度 */
-        }
-        .netflix-subtitle-notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .netflix-subtitle-notification .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
-            flex-shrink: 0;
-        }
-        .netflix-subtitle-notification.error {
-            background-color: #FFFFFF;
-            color: #000000;
-            border-left: 4px solid #EF4444;
-        }
-        .netflix-subtitle-notification.warning {
-            background-color: #FFFFFF;
-            color: #000000;
-            border-left: 4px solid #F59E0B;
-        }
-        .netflix-subtitle-notification.success {
-            background-color: #FFFFFF;
-            color: #000000;
-            border-left: none;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-  document.head.appendChild(style);
+  // 此函数保留空实现以兼容现有代码调用，但实际不需要执行任何操作
+  // 通知样式已在common/notify.ts中统一定义
 }
 
-// 隐藏通知
+// 隐藏通知 - 使用新的通知API
 export function hideNotification() {
-  const notification = document.querySelector('.netflix-subtitle-notification');
-  if (notification) {
-    notification.classList.remove('show');
-    setTimeout(() => notification.remove(), 300);
-  }
+  // 直接调用common/notify.ts中的hideNotification函数
+  importedHideNotification();
 }
 
 // 检查字幕
@@ -93,42 +33,6 @@ export function checkSubtitle() {
     console.log('Updated subtitle:', lastSubtitle);
   }
 }
-
-// export async function getImageDataFromBlob(blob: Blob): Promise<string> {
-//   try {
-//     // 创建 FormData 对象
-//     const formData = new FormData();
-
-//     // 将 blob 添加到 FormData，使用'image'作为键
-//     const file = new File([blob], 'subtitle.jpg', { type: 'image/jpeg' });
-//     formData.append('image', file);
-
-//     // 调用 Google Vision API，设置正确的 Content-Type
-
-//     // 获取响应数据
-//     const responseData = await response.json();
-
-//     // 检查响应
-//     if (responseData && responseData.success) {
-//       // 成功响应包含text对象
-//       if ('text' in responseData && responseData.text) {
-//         return responseData.text.fullText || '';
-//       }
-//       return '';
-//     } else {
-//       // 失败响应包含error字段
-//       if ('error' in responseData) {
-//         console.error('Google Vision API 返回错误:', responseData.error);
-//       } else {
-//         console.error('Google Vision API 返回未知错误');
-//       }
-//       return '';
-//     }
-//   } catch (error) {
-//     console.error('调用 Google Vision API 失败:', error);
-//     return '';
-//   }
-// }
 
 // 从图像中提取字幕
 export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]) {
@@ -188,10 +92,12 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
       // 根据环境选择不同的URL
       const upgradeUrl = 'https://www.bunn.ink/pricing' 
 
+      // 使用新API显示带操作按钮的通知，不自动消失
       showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
       throw new Error('Token limit reached');
     } else {
-      showNotification(response.error, 'error');
+      // 使用新API显示错误通知，不自动消失
+      showNotification(response.error, 'error', false, false);
       throw new Error(response.error);
     }
   }
@@ -215,13 +121,15 @@ export function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array | number[])
 // 捕获YouTube字幕
 export async function captureYoutubeSubtitle() {
   if (isRequestInProgress) {
-    showNotification('processing.request', 'warning', true);
+    // 正在处理请求，显示警告通知
+    showNotification('processing.request', 'warning', true, false);
     return;
   }
 
   const video = document.querySelector('.video-stream') as HTMLVideoElement;
   if (!video) {
-    showNotification('video.not.found', 'error', true);
+    // 未找到视频，显示错误通知
+    showNotification('video.not.found', 'error', true, false);
     return;
   }
 
@@ -280,7 +188,8 @@ export async function captureYoutubeSubtitle() {
       canvas.toBlob(async (blob) => {
         try {
           isRequestInProgress = true; // 标记请求开始
-          showNotification('recognizing.subtitles', "loading", true);
+          // 显示加载中通知，处理中状态会自动隐藏
+          showNotification('recognizing.subtitles', 'loading', true, true);
           
           if (blob) {
             const arrayBuffer = await blob.arrayBuffer();
@@ -304,28 +213,27 @@ export async function captureYoutubeSubtitle() {
                 };
 
                 await navigator.clipboard.writeText(JSON.stringify(subtitleData));
+                // 显示成功通知，不自动消失，通过点击链接或外部区域关闭
                 showNotificationWithLink('subtitle.copied.with.ctrl', 'success', 'https://www.bunn.ink', true);
-                setTimeout(() => {
-                  hideNotification(); // 5秒后隐藏通知（showNotificationWithLink内部已设置为5秒）
-                }, 5000);
                 
                 lastCopiedTime = currentTime; // 记录上次复制的时间
               } else {
-                updateNotification('subtitle.recognition.failed', 'error', true);
+                // 显示失败通知，不自动消失
+                updateNotification('subtitle.recognition.failed', 'error', true, false);
               }
             } catch (error: any) {
               console.error('字幕提取失败:', error);
               // 如果错误已经由extractSubtitlesFromImage处理，则此处不再显示通知
               if (error.message !== 'Token limit reached') {
-                updateNotification('subtitle.extraction.failed', 'error', true);
+                updateNotification('subtitle.extraction.failed', 'error', true, false);
               }
             }
           } else {
-            updateNotification('image.creation.failed', 'error', true);
+            updateNotification('image.creation.failed', 'error', true, false);
           }
         } catch (err) {
           console.error('处理失败:', err);
-          updateNotification('processing.failed', 'error', true);
+          updateNotification('processing.failed', 'error', true, false);
         } finally {
           isRequestInProgress = false; // 标记请求结束
         }
@@ -335,7 +243,7 @@ export async function captureYoutubeSubtitle() {
     }
   } catch (err) {
     console.error('截图失败:', err);
-    showNotification('screenshot.failed', 'error', true);
+    showNotification('screenshot.failed', 'error', true, false);
   }
 }
 
