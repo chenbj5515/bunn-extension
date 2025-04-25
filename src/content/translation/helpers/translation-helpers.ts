@@ -91,7 +91,7 @@ export async function handlePlainTextTranslation(
                 showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
             } else {
                 // 其他错误
-                showNotification('translation.failed', 'error', true, error?.message || '');
+                showNotification('translation.failed', 'error', true, false, error?.message || '');
             }
 
             // 翻译失败时清空内容
@@ -204,7 +204,7 @@ export async function handleExplanationStream(
                 showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
             } else {
                 // 其他错误
-                showNotification('analysis.failed', 'error', true, error?.message || '');
+                showNotification('analysis.failed', 'error', true, false, error?.message || '');
             }
 
             // 清空解释区域内容
@@ -282,7 +282,7 @@ export async function shouldTranslateAsFullParagraph(selectedText: string, parag
             showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
         } else {
             // 其他错误 - 需要重新获取locale
-            showNotification('analysis.failed', 'error', true, error?.message || '');
+            showNotification('analysis.failed', 'error', true, false, error?.message || '');
         }
         
         // 出错时默认按单词处理
@@ -339,7 +339,7 @@ export async function correctSelectedText(selectedText: string, fullParagraphTex
             showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
         } else {
             // 其他错误 - 需要重新获取locale
-            showNotification('translation.failed', 'error', true, error?.message || '');
+            showNotification('translation.failed', 'error', true, false, error?.message || '');
         }
         
         // 在显示通知之后，返回原始选中文本

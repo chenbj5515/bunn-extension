@@ -168,13 +168,13 @@ function handleAdjustVideoTime(e: KeyboardEvent) {
     console.log('lastCopiedTime:', lastCopiedTime);
     if (lastCopiedTime !== null) {
       video.currentTime = lastCopiedTime;
-      showNotification('video.time.adjusted.last', 'info', true, lastCopiedTime);
+      showNotification('video.time.adjusted.last', 'info', true, false, lastCopiedTime);
     } else {
       const currentUrl = new URL(window.location.href);
       const timeParam = currentUrl.searchParams.get('t');
       if (timeParam) {
         video.currentTime = parseFloat(timeParam);
-        showNotification('video.time.adjusted', 'info', true, timeParam);
+        showNotification('video.time.adjusted', 'info', true, false, timeParam);
       } else {
         showNotification('no.time.parameter', 'warning', true);
       }
