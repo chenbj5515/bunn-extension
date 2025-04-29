@@ -188,8 +188,7 @@ export async function captureYoutubeSubtitle() {
       canvas.toBlob(async (blob) => {
         try {
           isRequestInProgress = true; // 标记请求开始
-          // 显示加载中通知，处理中状态会自动隐藏
-          showNotification('recognizing.subtitles', 'loading', true, true);
+          showNotification('recognizing.subtitles', 'loading', true, false);
           
           if (blob) {
             const arrayBuffer = await blob.arrayBuffer();
