@@ -114,6 +114,11 @@ class NotificationManager {
         flex-shrink: 0;
         transition: opacity 0.2s ease;
         margin-left: 12px;
+        min-width: 80px;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
       .${NOTIFICATION_CLASS} button:hover {
         opacity: 0.8;
@@ -323,9 +328,16 @@ class NotificationManager {
     actionText: string,
     actionUrl: string
   ): Promise<HTMLElement> {
-    // 创建通知元素
-    const notification = this.createNotificationElement(message, type);
+    // 如果当前有通知正在显示，先隐藏它
+    if (this.currentNotification) {
+      this.hideNotification(this.currentNotification);
+    }
+    
+    // 创建纯净的通知元素，不包含内容
+    const notification = document.createElement('div');
+    notification.className = `${NOTIFICATION_CLASS} ${type}`;
     notification.style.justifyContent = 'space-between';
+    notification.style.borderLeft = 'none'; // 移除左侧边框
     
     // 创建消息容器
     const messageContainer = document.createElement('div');
@@ -333,11 +345,7 @@ class NotificationManager {
     messageContainer.style.alignItems = 'center';
     messageContainer.style.flex = '1';
     
-    // 添加图标
-    const icon = this.createTypeIcon(type);
-    messageContainer.appendChild(icon);
-    
-    // 添加消息
+    // 添加消息 (移除了图标)
     const messageSpan = document.createElement('span');
     messageSpan.className = 'message-container';
     messageSpan.innerHTML = message;
@@ -348,6 +356,11 @@ class NotificationManager {
     // 创建按钮
     const button = document.createElement('button');
     button.textContent = actionText;
+    button.style.minWidth = '80px'; // 设置最小宽度
+    button.style.textAlign = 'center'; // 文本居中
+    button.style.display = 'flex';
+    button.style.justifyContent = 'center';
+    button.style.alignItems = 'center';
     
     // 添加按钮点击事件
     button.onclick = (e) => {

@@ -92,6 +92,9 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
       // 根据环境选择不同的URL
       const upgradeUrl = 'https://www.bunn.ink/pricing' 
 
+      // 先隐藏当前通知
+      hideNotification();
+      
       // 使用新API显示带操作按钮的通知，不自动消失
       showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
       throw new Error('Token limit reached');
@@ -188,6 +191,10 @@ export async function captureYoutubeSubtitle() {
       canvas.toBlob(async (blob) => {
         try {
           isRequestInProgress = true; // 标记请求开始
+          
+          // 先隐藏当前通知
+          hideNotification();
+          
           showNotification('recognizing.subtitles', 'loading', true, false);
           
           if (blob) {
@@ -227,14 +234,20 @@ export async function captureYoutubeSubtitle() {
               console.error('字幕提取失败:', error);
               // 如果错误已经由extractSubtitlesFromImage处理，则此处不再显示通知
               if (error.message !== 'Token limit reached') {
+                // 先隐藏当前通知
+                hideNotification();
                 updateNotification('subtitle.extraction.failed', 'error', true, false);
               }
             }
           } else {
+            // 先隐藏当前通知
+            hideNotification();
             updateNotification('image.creation.failed', 'error', true, false);
           }
         } catch (err) {
           console.error('处理失败:', err);
+          // 先隐藏当前通知
+          hideNotification();
           updateNotification('processing.failed', 'error', true, false);
         } finally {
           isRequestInProgress = false; // 标记请求结束
@@ -245,6 +258,8 @@ export async function captureYoutubeSubtitle() {
     }
   } catch (err) {
     console.error('截图失败:', err);
+    // 先隐藏当前通知
+    hideNotification();
     showNotification('screenshot.failed', 'error', true, false);
   }
 }
