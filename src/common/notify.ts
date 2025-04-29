@@ -177,10 +177,9 @@ class NotificationManager {
     // 创建新通知元素
     const notification = this.createNotificationElement(message, type);
     
-    // 如果当前有通知正在显示，先将其加入队列
+    // 如果当前有通知正在显示，先隐藏它
     if (this.currentNotification) {
-      this.notificationQueue.push(notification);
-      return notification;
+      this.hideNotification(this.currentNotification);
     }
     
     // 直接显示新通知
@@ -362,6 +361,19 @@ class NotificationManager {
     // 显示通知
     this.displayNotification(notification, false);
     
+    // 添加点击外部关闭功能
+    const closeOnOutsideClick = (e: MouseEvent) => {
+      if (notification && !notification.contains(e.target as Node)) {
+        this.hideNotification(notification);
+        document.removeEventListener('click', closeOnOutsideClick);
+      }
+    };
+    
+    // 延迟一下再添加事件监听，防止刚创建就触发
+    setTimeout(() => {
+      document.addEventListener('click', closeOnOutsideClick);
+    }, 50);
+    
     return notification;
   }
 
@@ -386,11 +398,6 @@ export async function showNotification(
   autoHide: boolean = false,
   ...args: any[]
 ): Promise<HTMLElement> {
-  // 处理中的状态默认自动隐藏
-  if (type === 'loading') {
-    autoHide = true;
-  }
-
   // 获取消息文本
   const message = isTranslationKey 
     ? await getTranslation(messageOrKey, undefined, ...args) 

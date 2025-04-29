@@ -10,7 +10,7 @@ export function addUnderlineWithPopup(paragraphNode: Element, selectedText: stri
     // 如果段落不包含选中文本，则返回
     if (!paragraphText.includes(selectedText)) {
         console.error('段落中未找到选中文本:', selectedText);
-        showNotification('无法在段落中找到选中文本', 'error');
+        showNotification('无法在段落中找到选中文本', 'error', false, false);
         return null;
     }
 
@@ -72,7 +72,7 @@ export function addUnderlineWithPopup(paragraphNode: Element, selectedText: stri
 
     if (!found) {
         console.error('无法在DOM树中找到文本节点');
-        showNotification('无法在DOM树中找到文本节点', 'error');
+        showNotification('无法在DOM树中找到文本节点', 'error', false, false);
         return null;
     }
 
@@ -136,7 +136,7 @@ export function findParagraphInsertPosition(targetNode: Element): InsertPosition
     const insertAfterNode = findInsertPosition(targetNode);
 
     if (!insertAfterNode || !insertAfterNode.parentNode) {
-        showNotification('无法找到合适的插入位置', 'error');
+        showNotification('无法找到合适的插入位置', 'error', false, false);
         return null;
     }
 

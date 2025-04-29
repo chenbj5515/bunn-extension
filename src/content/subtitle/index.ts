@@ -85,12 +85,12 @@ async function handleCopySubtitle(e: KeyboardEvent) {
 
   if (isNetflix) {
     if (!lastSubtitle.text) {
-      showNotification('no.subtitle.available', 'warning', true);
+      showNotification('no.subtitle.available', 'warning', true, false);
       console.log('No subtitles to copy.');
       return;
     }
 
-    showNotification('preparing.subtitle.data', 'loading', true);
+    showNotification('preparing.subtitle.data', 'loading', true, false);
 
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('t', Math.floor(lastSubtitle.startTime).toString());
@@ -176,10 +176,10 @@ function handleAdjustVideoTime(e: KeyboardEvent) {
         video.currentTime = parseFloat(timeParam);
         showNotification('video.time.adjusted', 'info', true, false, timeParam);
       } else {
-        showNotification('no.time.parameter', 'warning', true);
+        showNotification('no.time.parameter', 'warning', true, false);
       }
     }
   } else {
-    showNotification('video.not.found', 'error', true);
+    showNotification('video.not.found', 'error', true, false);
   }
 }

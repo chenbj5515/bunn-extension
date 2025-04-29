@@ -24,7 +24,7 @@ export async function copyToClipboard(text: string) {
         showNotificationWithLink('subtitle.copied.with.ctrl', 'success', getBaseUrl(), true, false);
     } catch (err) {
         console.error('复制到剪贴板失败:', err);
-        showNotification('复制失败，请重试。');
+        showNotification('复制失败，请重试。', 'error', false, false);
     }
 }
 
@@ -118,6 +118,6 @@ export function removeYoutubeTranslateButton() {
         console.log('已设置移除YouTube评论区翻译按钮的监听器');
     } catch (error) {
         console.error('移除YouTube评论区翻译按钮时出错:', error);
-        showNotification('移除YouTube翻译按钮时出错', 'error');
+        showNotification('移除YouTube翻译按钮时出错', 'error', false, false);
     }
 } 

@@ -233,7 +233,7 @@ export function handlePopupDisplay(e: MouseEvent) {
                 popup.style.top = `${posY + window.scrollY}px`;
             }, 0);
         } else {
-            showNotification('无法加载译文弹窗', 'error');
+            showNotification('无法加载译文弹窗', 'error', false, false);
         }
     } else {
     }
