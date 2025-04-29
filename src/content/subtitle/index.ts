@@ -7,7 +7,8 @@ import {
   addNotificationStyle,
   checkSubtitle,
   captureYoutubeSubtitle,
-  updateLastCopiedTime
+  updateLastCopiedTime,
+  convertToFullWidth
 } from './helpers';
 import { showNotification, updateNotification, showNotificationWithLink } from '@/common/notify';
 
@@ -95,9 +96,12 @@ async function handleCopySubtitle(e: KeyboardEvent) {
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('t', Math.floor(lastSubtitle.startTime).toString());
 
+    // 将字幕文本转换为全角字符
+    const fullWidthText = convertToFullWidth(lastSubtitle.text);
+
     const subtitleData = {
       url: currentUrl.toString(),
-      text: lastSubtitle.text
+      text: fullWidthText
     };
 
     setTimeout(async () => {

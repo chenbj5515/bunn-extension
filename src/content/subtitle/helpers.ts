@@ -201,9 +201,12 @@ export async function captureYoutubeSubtitle() {
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('t', Math.floor(currentTime).toString());
 
+                // 将字幕文本转换为全角字符
+                const fullWidthText = convertToFullWidth(subtitleText);
+
                 const subtitleData = {
                   url: currentUrl.toString(),
-                  text: subtitleText,
+                  text: fullWidthText,
                   channelId: channelId,
                   channelName: channelName,
                   videoTitle: videoTitle,
@@ -249,4 +252,29 @@ export async function captureYoutubeSubtitle() {
 // 更新上次复制的时间
 export function updateLastCopiedTime(time: number) {
   lastCopiedTime = time;
+}
+
+/**
+ * 将半角标点符号和数字转换为全角字符，只保留、。！？这四个标点符号
+ * @param text 需要转换的文本
+ * @returns 转换后的文本
+ */
+export function convertToFullWidth(text: string): string {
+  // 先替换数字为全角数字
+  let result = text.replace(/[0-9]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0));
+  
+  // 替换指定的标点符号为全角版本
+  result = result
+    .replace(/,/g, '，')
+    .replace(/\./g, '。')
+    .replace(/!/g, '！')
+    .replace(/\?/g, '？');
+  
+  // 移除其他所有标点符号（保留字母、数字、汉字、假名和指定的标点符号）
+  // \u4e00-\u9fa5 是汉字范围
+  // \u3040-\u309F 是平假名范围
+  // \u30A0-\u30FF 是片假名范围
+  result = result.replace(/[^\w\s\u4e00-\u9fa5\u3040-\u309F\u30A0-\u30FF，。！？]/g, '');
+  
+  return result;
 } 
