@@ -292,11 +292,12 @@ export function convertToFullWidth(text: string): string {
     .replace(/!/g, '！')
     .replace(/\?/g, '？');
   
-  // 移除其他所有标点符号（保留字母、数字、汉字、假名和指定的标点符号）
+  // 移除其他所有标点符号（保留字母、数字、汉字、假名、全角数字和指定的标点符号）
   // \u4e00-\u9fa5 是汉字范围
   // \u3040-\u309F 是平假名范围
   // \u30A0-\u30FF 是片假名范围
-  result = result.replace(/[^\w\s\u4e00-\u9fa5\u3040-\u309F\u30A0-\u30FF，。！？]/g, '');
+  // \uFF10-\uFF19 是全角数字范围
+  result = result.replace(/[^\w\s\u4e00-\u9fa5\u3040-\u309F\u30A0-\u30FF\uFF10-\uFF19，。！？]/g, '');
   
   // 移除所有空格
   result = result.replace(/\s+/g, '');
