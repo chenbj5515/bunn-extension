@@ -86,22 +86,29 @@ export async function extractSubtitlesFromImage(imageData: Uint8Array | number[]
     }
   });
 
+  // 检查是否有错误响应
   if (response?.error) {
-    if (response.error === 'TOKEN_LIMIT_REACHED') {
-      // 处理token限制的特殊情况
-      // 根据环境选择不同的URL
-      const upgradeUrl = 'https://www.bunn.ink/pricing' 
+    // 根据环境选择不同的URL
+    const upgradeUrl = 'https://www.bunn.ink/pricing';
+    
+    // 先隐藏当前通知
+    hideNotification();
 
-      // 先隐藏当前通知
-      hideNotification();
-      
-      // 使用新API显示带操作按钮的通知，不自动消失
+    // 根据错误码显示不同的通知
+    const errorCode = response.errorCode;
+    
+    if (errorCode === 3001) {
+      // 处理token限制
       showNotificationWithAction('token.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
       throw new Error('Token limit reached');
+    } else if (errorCode === 3002) {
+      // 处理vision API限制
+      showNotificationWithAction('vision.api.limit.reached', 'warning', 'upgrade.button', upgradeUrl, true);
+      throw new Error('Vision API limit reached');
     } else {
-      // 使用新API显示错误通知，不自动消失
-      showNotification(response.error, 'error', false, false);
-      throw new Error(response.error);
+      // 处理其他API错误
+      showNotification(response.errorMessage || '未知错误', 'error', false, false);
+      throw new Error(response.errorMessage || '未知错误');
     }
   }
 
@@ -140,21 +147,21 @@ export async function captureYoutubeSubtitle() {
   let channelId = "";
   let channelName = "";
   let avatarUrl = "";
-  const channelElement = document.querySelector('ytd-channel-name a');
-  if (channelElement) {
-    const href = channelElement.getAttribute('href');
-    if (href) {
-      channelId = href.startsWith('/') ? href.substring(1) : href;
+  const ownerRenderer = document.querySelector('ytd-video-owner-renderer');
+  if (ownerRenderer) {
+    const channelElement = ownerRenderer.querySelector('ytd-channel-name a');
+    if (channelElement) {
+      const href = channelElement.getAttribute('href');
+      if (href) {
+        channelId = href.startsWith('/') ? href.substring(1) : href;
+      }
+      channelName = channelElement.textContent?.trim() || "";
     }
-    channelName = channelElement.textContent?.trim() || "";
     
     // 获取频道头像URL
-    const avatarElement = document.querySelector('#avatar');
+    const avatarElement = ownerRenderer.querySelector('#avatar img');
     if (avatarElement) {
-      const imgElement = avatarElement.querySelector('img');
-      if (imgElement) {
-        avatarUrl = imgElement.getAttribute('src') || "";
-      }
+      avatarUrl = avatarElement.getAttribute('src') || "";
     }
   }
 
@@ -290,6 +297,9 @@ export function convertToFullWidth(text: string): string {
   // \u3040-\u309F 是平假名范围
   // \u30A0-\u30FF 是片假名范围
   result = result.replace(/[^\w\s\u4e00-\u9fa5\u3040-\u309F\u30A0-\u30FF，。！？]/g, '');
+  
+  // 移除所有空格
+  result = result.replace(/\s+/g, '');
   
   return result;
 } 

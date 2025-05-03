@@ -127,6 +127,15 @@ export const notificationMessages: NotificationTranslations = {
     'fr': 'Limite de jetons atteinte. Mettez à niveau pour débloquer plus de jetons.',
     'de': 'Token-Limit erreicht. Upgrade für mehr Tokens freischalten.'
   },
+  'vision.api.limit.reached': {
+    'en': 'OCR limit reached. Upgrade to unlock more subtitle recognition.',
+    'zh': '您已达到OCR识别限制，升级后解锁更多字幕识别次数。',
+    'ja': 'OCR制限に達しました。アップグレードしてより多くの字幕認識を利用できます。',
+    'ko': 'OCR 제한에 도달했습니다. 업그레이드하여 더 많은 자막 인식 기능을 이용하세요.',
+    'es': 'Límite de OCR alcanzado. Actualice para desbloquear más reconocimiento de subtítulos.',
+    'fr': 'Limite d\'OCR atteinte. Mettez à niveau pour débloquer plus de reconnaissance de sous-titres.',
+    'de': 'OCR-Limit erreicht. Upgrade für mehr Untertitelerkennung freischalten.'
+  },
   'image.creation.failed': {
     'en': 'Failed to create image',
     'zh': '无法创建图像',

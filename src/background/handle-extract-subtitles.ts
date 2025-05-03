@@ -12,7 +12,7 @@ export async function handleExtractSubtitles(imageData: Uint8Array<ArrayBufferLi
         const formData = new FormData();
         formData.append('image', blob, 'image.png');
 
-        const response = await fetch(`${API_BASE_URL}/api/ai/extract-subtitles`, {
+        const response = await fetch(`${API_BASE_URL}/api/ai/extract-subtitles-google`, {
             method: 'POST',
             body: formData,
         });
@@ -25,15 +25,22 @@ export async function handleExtractSubtitles(imageData: Uint8Array<ArrayBufferLi
         } else {
             console.error("接口调用失败:", data);
             
-            // 检查是否是403错误（token限制）
-            if (response.status === 403 || (data as ApiErrorResponse).errorCode === 403) {
-                sendResponse({ error: 'TOKEN_LIMIT_REACHED' });
-            } else {
-                sendResponse({ error: data.error });
-            }
+            // 直接透传API返回的原始错误信息，包括errorCode
+            sendResponse({ 
+                error: true, 
+                errorMessage: data.error,
+                errorCode: (data as ApiErrorResponse).errorCode,
+                statusCode: response.status
+            });
         }
     } catch (error) {
         console.error("请求出现异常:", error);
-        sendResponse({ error: error instanceof Error ? error.message : String(error) });
+        // 对于网络请求异常等情况，返回明确的错误信息
+        sendResponse({ 
+            error: true, 
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorCode: 0, // 0表示非API返回的错误
+            statusCode: 0
+        });
     }
 }

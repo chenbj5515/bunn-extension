@@ -24,7 +24,7 @@ function getBaseUrl(): string {
 // 3 在captureYoutubeSubtitle里获取到当前视频帧的截图数据，用extractSubtitlesFromImage提取出字幕文本
 // 4-1 如果有存储的API Key，那么直接请求OpenAI接口，获取字幕文本
 // 4-2-1 如果没有存储的API Key，那么就会发起EXTRACT_SUBTITLES消息，请求后台脚本提取字幕文本
-// 4-2-2 后台脚本会调用我的后端服务器上的/api/openai/extract-subtitles接口，获取字幕文本
+// 4-2-2 后台脚本会调用我的后端服务器上的/api/openai/extract-subtitles-google接口，获取字幕文本
 // 4-3 获取到字幕文本后，将一个JSON格式的数据复制到剪切板，JSON中包括字幕文本和带有当前播放位置的url
 // 5 用户把剪切板内容复制到Bunn应用，Bunn支持JSON格式数据，会把相关的信息记录到DB
 // 6 用户复习的时候，想要查看句子的上下文，点击查看按钮，打开步骤3中的url
