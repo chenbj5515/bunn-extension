@@ -86,9 +86,12 @@ export async function initializeTranslation() {
             (window as any).lastMouseY = e.clientY;
         });
 
-        // 监听键盘事件
+        // 跟踪Ctrl键的状态
+        let isCtrlPressed = false;
+
+        // 监听键盘按下事件
         window.addEventListener('keydown', (e) => {
-            console.log('检测到键盘事件:', e.key);
+            console.log('检测到键盘事件:', e.key, '事件阶段:', e.eventPhase, '是否冒泡:', e.bubbles, '当前目标:', (e.currentTarget as Element)?.tagName);
 
             // 用户选中文本后按下T键，会被识别为翻译事件。
             // 翻译事件分为两种处理：处理整段翻译和处理部分文本翻译
@@ -99,8 +102,26 @@ export async function initializeTranslation() {
             // 用户选中文本后按下Ctrl键，会被识别为复制事件
             // 复制事件会调用copyToClipboard函数，不同于普通的COPY，这里会把JSON复制到剪贴板
             // JSON中不仅包括选中文本，并且还有URL参数和滚动位置信息，这些信息会用于恢复选中文本的位置
-            if (e.key === 'Control') {
+            if (e.key === 'Control' && !isCtrlPressed) {
+                console.log('Ctrl按下时的完整事件信息:', {
+                    type: e.type,
+                    target: (e.target as Element)?.tagName,
+                    currentTarget: (e.currentTarget as Element)?.tagName,
+                    eventPhase: e.eventPhase,
+                    bubbles: e.bubbles,
+                    path: e.composedPath().map(el => (el as Element).tagName || el.toString()),
+                    timestamp: Date.now()
+                });
+                isCtrlPressed = true;
                 handleCopy(e);
+            }
+        }, true);
+
+        // 监听键盘松开事件
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'Control') {
+                console.log('Ctrl释放');
+                isCtrlPressed = false;
             }
         }, true);
 

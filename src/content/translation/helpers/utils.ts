@@ -1,4 +1,4 @@
-import { showNotification, showNotificationWithLink } from '@/common/notify';
+import { showNotification, showNotificationWithLink, hideNotification } from '@/common/notify';
 // import { API_BASE_URL } from "@/utils/api";
 
 // 添加获取baseUrl的函数
@@ -32,8 +32,22 @@ function convertToFullWidth(text: string): string {
   return result;
 }
 
-// 将选中文本复制到剪贴板
-export async function copyToClipboard(text: string) {
+// 防抖函数
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+    let timeout: NodeJS.Timeout | null = null;
+    return function(this: ThisParameterType<T>, ...args: Parameters<T>) {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(() => {
+            func.apply(this, args);
+            timeout = null;
+        }, wait);
+    } as T;
+}
+
+// 实际的复制操作
+async function doCopy(text: string) {
     const url = new URL(window.location.href);
     url.searchParams.set('scrollY', window.scrollY.toString());
     
@@ -49,13 +63,19 @@ export async function copyToClipboard(text: string) {
     try {
         await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
         console.log('成功复制到剪贴板:', data);
+        // 先隐藏当前通知（如果有的话）
+        hideNotification();
         // 使用showNotificationWithLink函数并传入false作为autoHide参数，使弹窗不会自动消失
         showNotificationWithLink('subtitle.copied.with.ctrl', 'success', getBaseUrl(), true, false);
     } catch (err) {
         console.error('复制到剪贴板失败:', err);
+        hideNotification();
         showNotification('复制失败，请重试。', 'error', false, false);
     }
 }
+
+// 将选中文本复制到剪贴板（防抖版本）
+export const copyToClipboard = debounce(doCopy, 300);
 
 // 从URL恢复文本并高亮显示
 export async function highlightRestoredText(decodedText: string) {

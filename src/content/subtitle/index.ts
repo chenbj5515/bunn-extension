@@ -62,10 +62,6 @@ async function handleKeyDown(e: KeyboardEvent) {
   if (e.ctrlKey && !e.shiftKey && !e.altKey) {
     await handleCopySubtitle(e);
   }
-  // 处理YouTube上的左右箭头键
-  else if (isYouTube && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    handleYouTubeArrowKeys(e);
-  }
   // 处理调整视频时间快捷键 (Ctrl+Shift+R / Cmd+Shift+R)
   else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
     handleAdjustVideoTime(e);
@@ -145,21 +141,6 @@ async function handleCopySubtitle(e: KeyboardEvent) {
   }
 }
 
-/**
- * 处理YouTube上的左右箭头键
- */
-function handleYouTubeArrowKeys(e: KeyboardEvent) {
-  e.preventDefault();
-
-  const video = document.querySelector('.video-stream') as HTMLVideoElement;
-  if (video) {
-    if (e.key === 'ArrowLeft') {
-      video.currentTime -= 1;
-    } else if (e.key === 'ArrowRight') {
-      video.currentTime += 1;
-    }
-  }
-}
 
 /**
  * 处理调整视频时间快捷键 (Ctrl+R / Cmd+R)

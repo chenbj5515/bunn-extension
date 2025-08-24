@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bunn",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Bunn browser extension for subtitle copying and translation",
   "permissions": ["storage", "cookies"],
   "host_permissions": [
@@ -30,5 +30,8 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "externally_connectable": {
+    "matches": ["https://www.bunn.ink/*"]
+  }
 } 

@@ -1,6 +1,7 @@
 import { handleExtractSubtitles } from "./handle-extract-subtitles";
 import { handleGenerateText } from "./handle-generate-text";
 import { handleGenerateTextStream } from "./handle-generate-text-stream";
+import { handleWebMessage } from './web-communication';
 
 // 获取baseUrl的函数
 function getBaseUrl(): string {
@@ -39,7 +40,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         return true; // 保持消息通道开放，等待异步响应
     }
-    
+
     // 处理设置 locale cookie 的请求
     if (message.action === 'SET_LOCALE_COOKIE') {
         chrome.cookies.set({
@@ -69,4 +70,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         handleGenerateText(message, sender, sendResponse);
         return true; // 表示会异步发送响应
     }
+});
+
+chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
+    return handleWebMessage(msg, sender, sendResponse);
 });
