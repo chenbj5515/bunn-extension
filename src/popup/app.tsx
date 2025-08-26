@@ -66,9 +66,8 @@ export default function SettingsPage() {
     })
       .then(async (response) => {
         const responseData = await response.json();
-
-        if (responseData.success && 'data' in responseData) {
-          const {user, subscription} = responseData.data;
+        if (responseData.success) {
+          const {user, subscription} = responseData;
 
           const userData: User = {
             id: user.id,

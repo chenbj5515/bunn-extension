@@ -8,22 +8,20 @@ interface User {
   email: string;
   image?: string;
   subscriptionActive: boolean;
-  expireTime: string;
+  expireTime: string | null;
 }
 
 interface SessionResponse {
   success: boolean;
-  data?: {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      image?: string;
-    };
-    subscription: {
-      active: boolean;
-      expireTime: string;
-    };
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string;
+  };
+  subscription?: {
+    active: boolean;
+    expireTime: string | null;
   };
 }
 
@@ -61,8 +59,10 @@ export async function handleGetLoginState(
 
     const data: SessionResponse = await response.json();
 
-    if (data.success && data.data) {
-      const { user, subscription } = data.data;
+    console.log(data, "data from session API");
+    if (data.success && data.user && data.subscription) {
+      // 根据实际API返回格式，user和subscription直接在data上
+      const { user, subscription } = data;
       const userData: User = {
         id: user.id,
         name: user.name,
@@ -72,15 +72,15 @@ export async function handleGetLoginState(
         expireTime: subscription.expireTime
       };
 
-      sendResponse({ 
-        ok: true, 
+      sendResponse({
+        ok: true,
         isLoggedIn: true,
         user: userData
       });
     } else {
-      sendResponse({ 
-        ok: true, 
-        isLoggedIn: false 
+      sendResponse({
+        ok: true,
+        isLoggedIn: false
       });
     }
   } catch (err) {
